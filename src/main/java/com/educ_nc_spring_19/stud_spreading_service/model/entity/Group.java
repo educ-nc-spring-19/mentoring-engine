@@ -1,10 +1,10 @@
 package com.educ_nc_spring_19.stud_spreading_service.model.entity;
 
 
+import com.educ_nc_spring_19.educ_nc_spring_19_common.common.CreatedUpdatedDateByUser;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -24,13 +24,8 @@ public class Group {
     @JoinColumn(name = "stage_id", nullable = false)
     private Stage stage;
 
-    @Column(columnDefinition = "timestamp with time zone")
-    private OffsetDateTime createdDate;
-    private UUID createdByUserId;
-
-    @Column(columnDefinition = "timestamp with time zone")
-    private OffsetDateTime updatedDate;
-    private UUID updatedByUserId;
+    @Embedded
+    private CreatedUpdatedDateByUser createdUpdatedDateByUser;
 
     @ElementCollection
     @CollectionTable(
