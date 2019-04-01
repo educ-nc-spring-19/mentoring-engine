@@ -11,6 +11,7 @@ import java.util.UUID;
 @Data
 
 @Entity
+@Table(name = "spr_group")
 public class Group {
     @Id
     @GeneratedValue
