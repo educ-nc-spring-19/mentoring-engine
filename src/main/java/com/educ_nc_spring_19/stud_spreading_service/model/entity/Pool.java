@@ -3,7 +3,7 @@ package com.educ_nc_spring_19.stud_spreading_service.model.entity;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -19,5 +19,5 @@ public class Pool {
             joinColumns = @JoinColumn(name = "pool_id")
     )
     @Column(name = "student_id", nullable = false)
-    private Collection<UUID> students;
+    private List<UUID> students;
 }

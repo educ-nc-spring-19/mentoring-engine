@@ -5,7 +5,7 @@ import com.educ_nc_spring_19.educ_nc_spring_19_common.common.CreatedUpdatedDateB
 import lombok.Data;
 
 import javax.persistence.*;
-import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -25,6 +25,9 @@ public class Group {
     @JoinColumn(name = "stage_id", nullable = false)
     private Stage stage;
 
+    @Column(name = "stage_id", insertable = false, updatable = false)
+    private UUID stageId;
+
     @Embedded
     private CreatedUpdatedDateByUser createdUpdatedDateByUser;
 
@@ -34,5 +37,5 @@ public class Group {
             joinColumns = @JoinColumn(name = "group_id")
     )
     @Column(name = "student_id", nullable = false)
-    private Collection<UUID> students;
+    private List<UUID> students;
 }
