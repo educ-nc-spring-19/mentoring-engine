@@ -1,6 +1,8 @@
 package com.educ_nc_spring_19.stud_spreading_service.model.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.List;
@@ -13,7 +15,9 @@ public class Pool {
     @Id
     private UUID id;
 
-    @ElementCollection
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "pool_student",
             joinColumns = @JoinColumn(name = "pool_id")
