@@ -20,6 +20,8 @@
         <org.mapstruct.version>1.3.0.Final</org.mapstruct.version>
         <org.projectlombok.version>1.18.6</org.projectlombok.version>
         <com.educ-nc-spring-19.educ-nc-spring-19-common.version>0.1.2-SNAPSHOT</com.educ-nc-spring-19.educ-nc-spring-19-common.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <commons-collections.version>3.2.2</commons-collections.version>
     </properties>
 
     <dependencies>
@@ -30,6 +32,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>${commons-collections.version}</version>
         </dependency>
 
         <dependency>
