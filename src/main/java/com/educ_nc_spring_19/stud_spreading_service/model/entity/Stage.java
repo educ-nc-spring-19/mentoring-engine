@@ -3,7 +3,6 @@ package com.educ_nc_spring_19.stud_spreading_service.model.entity;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Audit;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Auditable;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.listener.AuditListener;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
