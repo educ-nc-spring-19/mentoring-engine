@@ -1,4 +1,4 @@
-package com.educ_nc_spring_19.stud_spreading_service.service;
+package com.educ_nc_spring_19.mentoring_engine.service;
 
 import org.springframework.stereotype.Service;
 

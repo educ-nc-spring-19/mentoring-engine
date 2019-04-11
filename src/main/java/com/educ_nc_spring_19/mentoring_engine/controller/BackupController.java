@@ -1,9 +1,9 @@
-package com.educ_nc_spring_19.stud_spreading_service.controller;
+package com.educ_nc_spring_19.mentoring_engine.controller;
 
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
-import com.educ_nc_spring_19.stud_spreading_service.client.MasterDataClient;
-import com.educ_nc_spring_19.stud_spreading_service.service.BackupService;
-import com.educ_nc_spring_19.stud_spreading_service.service.UserService;
+import com.educ_nc_spring_19.mentoring_engine.client.MasterDataClient;
+import com.educ_nc_spring_19.mentoring_engine.service.BackupService;
+import com.educ_nc_spring_19.mentoring_engine.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Log4j2
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/stud-spreading-service/rest/api/v1/backup")
+@RequestMapping("/mentoring-engine/rest/api/v1/backup")
 public class BackupController {
 
     private final BackupService backupService;

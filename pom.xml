@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.educ_nc_spring_19</groupId>
-    <artifactId>stud_spreading_service</artifactId>
+    <artifactId>mentoring_engine</artifactId>
     <version>0.0.4-SNAPSHOT</version>
-    <name>stud_spreading_service</name>
-    <description>Implementation of Students Spreading microservice</description>
+    <name>mentoring_engine</name>
+    <description>Implementation of Mentoring Engine microservice</description>
 
     <properties>
         <java.version>1.8</java.version>
@@ -71,7 +71,7 @@
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct-jdk8</artifactId>
+            <artifactId>mapstruct</artifactId>
             <version>${org.mapstruct.version}</version>
         </dependency>
     </dependencies>

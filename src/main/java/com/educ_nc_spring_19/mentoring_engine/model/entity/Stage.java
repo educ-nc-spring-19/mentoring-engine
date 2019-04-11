@@ -1,4 +1,4 @@
-package com.educ_nc_spring_19.stud_spreading_service.model.entity;
+package com.educ_nc_spring_19.mentoring_engine.model.entity;
 
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Audit;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Auditable;

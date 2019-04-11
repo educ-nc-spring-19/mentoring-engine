@@ -1,9 +1,9 @@
 -- BEGIN POOL
-INSERT INTO stud_spreading_service.pool (id) VALUES ('90aaa9ad-acc2-416f-b535-cf27417538d3');
+INSERT INTO mentoring_engine.pool (id) VALUES ('90aaa9ad-acc2-416f-b535-cf27417538d3');
 -- END POOL
 
 -- BEGIN POOL_STUDENT
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -11,7 +11,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '97ee68a6-2993-49cd-926b-887911876457'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -19,7 +19,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '64c91cdc-3ee4-4817-bb94-cd3060fa2ccb'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -27,7 +27,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '8b7bce93-3d3b-45fe-b699-ea04d5c3afb3'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -35,7 +35,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'aa4edfc6-68f0-4493-ba73-469cb3e3d94d'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -43,7 +43,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '017f43df-22f4-4c22-a182-68c412942ff4'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -51,7 +51,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'a31525db-be2f-4ef6-8739-a9dd923cb026'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -59,7 +59,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'd549eff2-9a89-4385-9129-5785393f7b3a'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -67,7 +67,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '5ee5b006-d894-47b2-b48d-fb403cc2f57f'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -75,7 +75,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '9a0e2762-1e56-486d-be1d-445b5a4cc130'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -83,7 +83,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '7ae5cb22-584f-4dfe-a6fb-ed9ddff04cd9'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -91,7 +91,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'e5b4c89c-74b7-48e3-ae0f-bfc307313cd7'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -99,7 +99,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'f28fd0a3-0ca1-428d-bbd6-382eb51887df'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -107,7 +107,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '13fcd929-49ef-4f4f-857b-b8bfbb38efc8'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -115,7 +115,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'f28d0a2a-172d-424c-b43d-b5c5fc70edbc'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -123,7 +123,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '2e908a59-d19c-43a8-a375-d1782298e910'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -131,7 +131,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '62e21e5e-99b4-4d12-8338-38e01096a61a'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -139,7 +139,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'c3f0de21-3934-4d5a-a1d7-f7a332a133e6'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -147,7 +147,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'e261ec12-7af8-43c8-92e5-8789ce5a1b29'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -155,7 +155,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'c5069dec-7049-4644-9542-efaf5e1b9a55'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -163,7 +163,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '7b60ac91-f553-4dc6-8582-4b178fc19c2f'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -171,7 +171,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '04b45c63-9870-4af4-897a-f3fe971dc6a5'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -179,7 +179,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'b3f26555-4f5a-40b2-a9b7-bd5c205ca82d'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -187,7 +187,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '0bbf5a84-fafb-4560-becd-a5e2f8b1b98a'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -195,7 +195,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '4019a5cc-2309-4f7f-80a5-9798f4ead212'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -203,7 +203,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '4ae9939d-5ce1-4108-8796-1dc0b3158674'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -211,7 +211,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '50384380-8536-418d-a8dd-b485c1a02fa7'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -219,7 +219,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '4971f66d-b9d9-423c-b83d-b81d8d7ebcd0'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -227,7 +227,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '48972e86-b34b-4f38-8212-76966d9ecb87'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -235,7 +235,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '343c50c2-aacb-4fe0-8119-965ed22cd630'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -243,7 +243,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'ba64bc41-d626-4384-bbd5-482c335f5e27'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -251,7 +251,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '375a4b0d-c9a6-49f7-b524-aaa8da95c3ca'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -259,7 +259,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '78520b75-16b0-44b9-a63f-51be79de9afd'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -267,7 +267,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '4e1046d1-f8e2-430d-a551-51da05e65213'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -275,7 +275,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '79dfc349-9a1c-4113-9029-5a1a57e3e945'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -283,7 +283,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '59410d1a-ca04-4a8e-b6da-88d42f1084b7'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -291,7 +291,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '39ce94bc-ae1d-4760-bdb8-e0d555273e61'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -299,7 +299,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '570f70af-77fc-46a4-a6ad-be9c4488c325'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -307,7 +307,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'be601fbf-cc06-4fcc-a9e5-e10fdb126351'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -315,7 +315,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '24f442e5-6b2e-4fd6-84ed-2f021de80327'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -323,7 +323,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '3965cfac-905a-4b5c-8221-4a4ebfa70200'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -331,7 +331,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'ff6a30c6-5056-4258-aa33-d7fed4d88d5e'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -339,7 +339,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '8f159574-5d8a-4593-99b5-e6a440e9d006'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -347,7 +347,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'de59ed31-4a79-46b0-9812-4f6bed16ddfa'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -355,7 +355,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '64423835-51c3-479a-be88-80401e048dbd'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -363,7 +363,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '0e2f91e7-658f-4e5b-9829-07c911b554d3'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -371,7 +371,7 @@ INSERT INTO stud_spreading_service.pool_student (
     'ac77d695-87f7-4b03-98c3-678b1dce650e'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -379,7 +379,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '9a5e4845-bcf1-41e7-a7a5-7852975796a2'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -387,7 +387,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '9abef949-baa1-4aba-98ea-6e573435fd01'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -395,7 +395,7 @@ INSERT INTO stud_spreading_service.pool_student (
     '73fdd2fb-6e19-4280-a092-0adcc5f58d29'
 );
 
-INSERT INTO stud_spreading_service.pool_student (
+INSERT INTO mentoring_engine.pool_student (
     pool_id,
     student_id
 ) VALUES (
@@ -405,7 +405,7 @@ INSERT INTO stud_spreading_service.pool_student (
 -- END POOL_STUDENT
 
 -- BEGIN CAULDRON
-INSERT INTO stud_spreading_service.cauldron (
+INSERT INTO mentoring_engine.cauldron (
     id,
     name,
     description,
@@ -423,7 +423,7 @@ INSERT INTO stud_spreading_service.cauldron (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.cauldron (
+INSERT INTO mentoring_engine.cauldron (
     id,
     name,
     description,
@@ -441,7 +441,7 @@ INSERT INTO stud_spreading_service.cauldron (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.cauldron (
+INSERT INTO mentoring_engine.cauldron (
     id,
     name,
     description,
@@ -459,7 +459,7 @@ INSERT INTO stud_spreading_service.cauldron (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.cauldron (
+INSERT INTO mentoring_engine.cauldron (
     id,
     name,
     description,
@@ -479,7 +479,7 @@ INSERT INTO stud_spreading_service.cauldron (
 -- END CAULDRON
 
 -- BEGIN CAULDRON_MENTOR
-INSERT INTO stud_spreading_service.cauldron_mentor (
+INSERT INTO mentoring_engine.cauldron_mentor (
     cauldron_id,
     mentor_id
 ) VALUES (
@@ -487,7 +487,7 @@ INSERT INTO stud_spreading_service.cauldron_mentor (
     '514328c1-dd76-498d-b221-34fac9f0122a'
 );
 
-INSERT INTO stud_spreading_service.cauldron_mentor (
+INSERT INTO mentoring_engine.cauldron_mentor (
     cauldron_id,
     mentor_id
 ) VALUES (
@@ -495,7 +495,7 @@ INSERT INTO stud_spreading_service.cauldron_mentor (
     'da02ca8d-6d6a-4b3b-91a1-cbfd09401d36'
 );
 
-INSERT INTO stud_spreading_service.cauldron_mentor (
+INSERT INTO mentoring_engine.cauldron_mentor (
     cauldron_id,
     mentor_id
 ) VALUES (
@@ -503,7 +503,7 @@ INSERT INTO stud_spreading_service.cauldron_mentor (
     '3eb2f32e-d06d-45a9-880a-5745e8a54e92'
 );
 
-INSERT INTO stud_spreading_service.cauldron_mentor (
+INSERT INTO mentoring_engine.cauldron_mentor (
     cauldron_id,
     mentor_id
 ) VALUES (
@@ -511,7 +511,7 @@ INSERT INTO stud_spreading_service.cauldron_mentor (
     'cedb060c-51a2-484f-b6a1-7d454257d37d'
 );
 
-INSERT INTO stud_spreading_service.cauldron_mentor (
+INSERT INTO mentoring_engine.cauldron_mentor (
     cauldron_id,
     mentor_id
 ) VALUES (
@@ -519,7 +519,7 @@ INSERT INTO stud_spreading_service.cauldron_mentor (
     'b32ea1ba-cb29-4e3c-b640-4a1c8bf0b4d7'
 );
 
-INSERT INTO stud_spreading_service.cauldron_mentor (
+INSERT INTO mentoring_engine.cauldron_mentor (
     cauldron_id,
     mentor_id
 ) VALUES (
@@ -527,7 +527,7 @@ INSERT INTO stud_spreading_service.cauldron_mentor (
     'fa46f0d3-ec09-40c8-8b2b-71934071eeeb'
 );
 
-INSERT INTO stud_spreading_service.cauldron_mentor (
+INSERT INTO mentoring_engine.cauldron_mentor (
     cauldron_id,
     mentor_id
 ) VALUES (
@@ -535,7 +535,7 @@ INSERT INTO stud_spreading_service.cauldron_mentor (
     '2aceddaf-9411-4aaa-a38a-df8c2804c793'
 );
 
-INSERT INTO stud_spreading_service.cauldron_mentor (
+INSERT INTO mentoring_engine.cauldron_mentor (
     cauldron_id,
     mentor_id
 ) VALUES (
@@ -545,7 +545,7 @@ INSERT INTO stud_spreading_service.cauldron_mentor (
 -- END CAULDRON_MENTOR
 
 -- BEGIN STAGE
-INSERT INTO stud_spreading_service.stage (
+INSERT INTO mentoring_engine.stage (
     id,
     name,
     description,
@@ -565,7 +565,7 @@ INSERT INTO stud_spreading_service.stage (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.stage (
+INSERT INTO mentoring_engine.stage (
     id,
     name,
     description,
@@ -585,7 +585,7 @@ INSERT INTO stud_spreading_service.stage (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.stage (
+INSERT INTO mentoring_engine.stage (
     id,
     name,
     description,
@@ -605,7 +605,7 @@ INSERT INTO stud_spreading_service.stage (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.stage (
+INSERT INTO mentoring_engine.stage (
     id,
     name,
     description,
@@ -625,7 +625,7 @@ INSERT INTO stud_spreading_service.stage (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.stage (
+INSERT INTO mentoring_engine.stage (
     id,
     name,
     description,
@@ -647,7 +647,7 @@ INSERT INTO stud_spreading_service.stage (
 -- END STAGE
 
 -- BEGIN SPR_GROUP
-INSERT INTO stud_spreading_service.spr_group (
+INSERT INTO mentoring_engine.spr_group (
     id,
     name,
     mentor_id,
@@ -669,7 +669,7 @@ INSERT INTO stud_spreading_service.spr_group (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.spr_group (
+INSERT INTO mentoring_engine.spr_group (
     id,
     name,
     mentor_id,
@@ -691,7 +691,7 @@ INSERT INTO stud_spreading_service.spr_group (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.spr_group (
+INSERT INTO mentoring_engine.spr_group (
     id,
     name,
     mentor_id,
@@ -713,7 +713,7 @@ INSERT INTO stud_spreading_service.spr_group (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.spr_group (
+INSERT INTO mentoring_engine.spr_group (
     id,
     name,
     mentor_id,
@@ -735,7 +735,7 @@ INSERT INTO stud_spreading_service.spr_group (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.spr_group (
+INSERT INTO mentoring_engine.spr_group (
     id,
     name,
     mentor_id,
@@ -757,7 +757,7 @@ INSERT INTO stud_spreading_service.spr_group (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.spr_group (
+INSERT INTO mentoring_engine.spr_group (
     id,
     name,
     mentor_id,
@@ -779,7 +779,7 @@ INSERT INTO stud_spreading_service.spr_group (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.spr_group (
+INSERT INTO mentoring_engine.spr_group (
     id,
     name,
     mentor_id,
@@ -801,7 +801,7 @@ INSERT INTO stud_spreading_service.spr_group (
     'b9ed2a13-de38-4df0-b70a-92c9baf32494'
 );
 
-INSERT INTO stud_spreading_service.spr_group (
+INSERT INTO mentoring_engine.spr_group (
     id,
     name,
     mentor_id,

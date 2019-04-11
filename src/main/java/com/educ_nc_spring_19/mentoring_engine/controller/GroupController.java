@@ -1,12 +1,12 @@
-package com.educ_nc_spring_19.stud_spreading_service.controller;
+package com.educ_nc_spring_19.mentoring_engine.controller;
 
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.GroupDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
-import com.educ_nc_spring_19.stud_spreading_service.client.MasterDataClient;
-import com.educ_nc_spring_19.stud_spreading_service.mapper.GroupMapper;
-import com.educ_nc_spring_19.stud_spreading_service.model.entity.Group;
-import com.educ_nc_spring_19.stud_spreading_service.service.GroupService;
-import com.educ_nc_spring_19.stud_spreading_service.service.UserService;
+import com.educ_nc_spring_19.mentoring_engine.client.MasterDataClient;
+import com.educ_nc_spring_19.mentoring_engine.mapper.GroupMapper;
+import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
+import com.educ_nc_spring_19.mentoring_engine.service.GroupService;
+import com.educ_nc_spring_19.mentoring_engine.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -23,7 +23,7 @@ import java.util.*;
 @Log4j2
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/stud-spreading-service/rest/api/v1/group")
+@RequestMapping("/mentoring-engine/rest/api/v1/group")
 public class GroupController {
     private final GroupService groupService;
     private final GroupMapper groupMapper;

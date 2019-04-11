@@ -1,8 +1,8 @@
-package com.educ_nc_spring_19.stud_spreading_service.mapper;
+package com.educ_nc_spring_19.mentoring_engine.mapper;
 
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.TeamDTO;
-import com.educ_nc_spring_19.stud_spreading_service.model.entity.Group;
+import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

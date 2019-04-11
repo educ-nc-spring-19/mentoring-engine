@@ -1,4 +1,4 @@
-package com.educ_nc_spring_19.stud_spreading_service.client;
+package com.educ_nc_spring_19.mentoring_engine.client;
 
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;

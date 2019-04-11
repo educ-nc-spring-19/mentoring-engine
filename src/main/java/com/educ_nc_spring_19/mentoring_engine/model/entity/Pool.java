@@ -1,4 +1,4 @@
-package com.educ_nc_spring_19.stud_spreading_service.model.entity;
+package com.educ_nc_spring_19.mentoring_engine.model.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
