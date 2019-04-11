@@ -6,7 +6,7 @@ import com.educ_nc_spring_19.stud_spreading_service.service.BackupService;
 import com.educ_nc_spring_19.stud_spreading_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Level;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +34,8 @@ public class BackupController {
         List<UUID> allEmployedBackupsIds = backupService.findAll();
         log.log(Level.INFO, "allEmployedBackupsIds: " + allEmployedBackupsIds);
 
-        UUID currentMentorDirectionId = masterDataClient.getMentorByUserId(userService.getCurrentUserId()).getDirectionId();
+        MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(userService.getCurrentUserId());
+        UUID currentMentorDirectionId = currentMentorDTO.getDirectionId();
         log.log(Level.INFO, "currentMentorDirectionId: " + currentMentorDirectionId.toString());
 
         List<MentorDTO> mentorsByDirectionId = masterDataClient.getMentorsByDirectoryId(currentMentorDirectionId);
@@ -48,6 +49,7 @@ public class BackupController {
         List<MentorDTO> responseMentors = mentorsByDirectionId.stream()
                 .filter(mentorDTO -> mentorDTO.getDirectionId().equals(currentMentorDirectionId)
                         && !allEmployedBackupsIds.contains(mentorDTO.getId())
+                        && !mentorDTO.getId().equals(currentMentorDTO.getId())
                 )
                 .collect(Collectors.toList());
 

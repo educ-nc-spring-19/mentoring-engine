@@ -3,7 +3,7 @@ package com.educ_nc_spring_19.stud_spreading_service.client;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Level;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;

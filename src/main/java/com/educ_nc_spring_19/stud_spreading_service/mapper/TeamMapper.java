@@ -7,8 +7,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface TeamMapper {
@@ -17,7 +18,27 @@ public interface TeamMapper {
     })
     TeamDTO toTeamDTO(Group group, List<StudentDTO> studentDTOS);
 
-   ArrayList<TeamDTO> toTeamsDTO(ArrayList<Group> groups, ArrayList<List<StudentDTO>> studentDTOS);
+   default List<TeamDTO> toTeamsDTO(Map<Group, List<StudentDTO>>  groupsStudents) {
+       if (groupsStudents == null) {
+           return null;
+       }
+
+       List<TeamDTO> teamDTOList = new LinkedList<>();
+
+       for (Map.Entry<Group, List<StudentDTO>> groupStudentsEntry : groupsStudents.entrySet()) {
+           Group group = groupStudentsEntry.getKey();
+           List<StudentDTO> studentDTOS = groupStudentsEntry.getValue();
+
+           // evade of empty node addition
+           if (group == null && studentDTOS == null) {
+               continue;
+           }
+
+           teamDTOList.add(toTeamDTO(group, studentDTOS));
+       }
+
+       return teamDTOList;
+   }
 
     @Mappings({
             @Mapping(target = "students",
