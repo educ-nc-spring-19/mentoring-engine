@@ -1,6 +1,7 @@
-package com.educ_nc_spring_19.mentoring_engine.service.repo;
+package com.educ_nc_spring_19.mentoring_engine.service;
 
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Stage;
+import com.educ_nc_spring_19.mentoring_engine.service.repo.StageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
