@@ -41,6 +41,21 @@ CREATE TABLE mentoring_engine.cauldron_mentor (
 ALTER TABLE mentoring_engine.cauldron_mentor OWNER to mentoring_engine;
 -- END CREATE TABLE mentoring_engine.cauldron_mentor
 
+-- BEGIN CREATE TABLE mentoring_engine.cauldron_student
+CREATE TABLE mentoring_engine.cauldron_student (
+    cauldron_id uuid NOT NULL,
+    student_id uuid NOT NULL,
+    CONSTRAINT fkqmmebm5ihgbbe64pya1ngka84 FOREIGN KEY (cauldron_id)
+        REFERENCES mentoring_engine.cauldron (id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+) WITH (
+    OIDS = FALSE
+) TABLESPACE pg_default;
+
+ALTER TABLE mentoring_engine.cauldron_student OWNER to mentoring_engine;
+-- END CREATE TABLE mentoring_engine.cauldron_student
+
 -- BEGIN CREATE TABLE mentoring_engine.stage
 CREATE TABLE mentoring_engine.stage (
     id uuid NOT NULL,

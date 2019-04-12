@@ -37,4 +37,15 @@ public class Cauldron implements Auditable {
     )
     @Column(name = "mentor_id", nullable = false)
     private List<UUID> mentors;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "cauldron_student",
+            joinColumns = @JoinColumn(name = "cauldron_id")
+    )
+    @Column(name = "student_id", nullable = false)
+    private List<UUID> students;
 }
