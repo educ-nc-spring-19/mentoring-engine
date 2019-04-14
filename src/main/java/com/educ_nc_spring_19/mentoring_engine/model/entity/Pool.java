@@ -1,9 +1,11 @@
-package com.educ_nc_spring_19.stud_spreading_service.model.entity;
+package com.educ_nc_spring_19.mentoring_engine.model.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -13,11 +15,13 @@ public class Pool {
     @Id
     private UUID id;
 
-    @ElementCollection
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "pool_student",
             joinColumns = @JoinColumn(name = "pool_id")
     )
     @Column(name = "student_id", nullable = false)
-    private Collection<UUID> students;
+    private List<UUID> students;
 }
