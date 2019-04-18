@@ -4,6 +4,7 @@ import com.educ_nc_spring_19.mentoring_engine.service.repo.GroupRepository;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Stage;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -59,6 +60,10 @@ public class GroupService {
         groupRepository.deleteById(id);
     }
 
+    public void deleteAll() {
+        groupRepository.deleteAll();
+    }
+
     public Group setBackupId(UUID groupId, UUID backupId) throws IllegalArgumentException {
         Optional<Group> optionalGroup = groupRepository.findById(groupId);
         if (optionalGroup.isPresent()) {
@@ -68,5 +73,9 @@ public class GroupService {
         } else {
             throw new IllegalArgumentException("Group with id=" + groupId + " doesn't exist");
         }
+    }
+
+    public List<Group> saveAll(Iterable<Group> groups) {
+        return IterableUtils.toList(groupRepository.saveAll(groups));
     }
 }

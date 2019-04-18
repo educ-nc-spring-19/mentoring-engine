@@ -3,6 +3,7 @@ package com.educ_nc_spring_19.mentoring_engine.model.entity;
 
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Audit;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Auditable;
+import com.educ_nc_spring_19.educ_nc_spring_19_common.common.StudentStatusBind;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.listener.AuditListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -43,11 +44,11 @@ public class Group implements Auditable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonIgnore
+    @Embedded
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "group_student",
             joinColumns = @JoinColumn(name = "group_id")
     )
-    @Column(name = "student_id", nullable = false)
-    private List<UUID> students;
+    private List<StudentStatusBind> students;
 }

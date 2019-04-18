@@ -40,9 +40,11 @@ public interface TeamMapper {
        return teamDTOList;
    }
 
+   /*
     @Mappings({
             @Mapping(target = "students",
                     expression = "java(teamDTO.getStudents().stream().map(StudentDTO::getId).collect(java.util.stream.Collectors.toList()))")
     })
     Group toGroup(TeamDTO teamDTO);
+    */
 }

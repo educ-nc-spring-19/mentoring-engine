@@ -38,7 +38,7 @@ public class BackupController {
         UUID currentMentorDirectionId = currentMentorDTO.getDirectionId();
         log.log(Level.INFO, "currentMentorDirectionId: " + currentMentorDirectionId.toString());
 
-        List<MentorDTO> mentorsByDirectionId = masterDataClient.getMentorsByDirectoryId(currentMentorDirectionId);
+        List<MentorDTO> mentorsByDirectionId = masterDataClient.getMentorsByDirectionId(currentMentorDirectionId);
 
         if (CollectionUtils.isEmpty(mentorsByDirectionId)) {
             log.log(Level.WARN, "mentorsByDirectionId is empty");

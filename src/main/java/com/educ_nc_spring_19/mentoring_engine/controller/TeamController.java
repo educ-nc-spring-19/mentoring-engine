@@ -1,5 +1,6 @@
 package com.educ_nc_spring_19.mentoring_engine.controller;
 
+import com.educ_nc_spring_19.educ_nc_spring_19_common.common.StudentStatusBind;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.TeamDTO;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -46,7 +48,7 @@ public class TeamController {
 
             log.log(Level.INFO, "group = " + group.get().getId());
             log.log(Level.INFO, "groupStudents = " + group.get().getStudents());
-            List<StudentDTO> students = masterDataClient.getStudentsById(group.get().getStudents());
+            List<StudentDTO> students = masterDataClient.getStudentsById(group.get().getStudents().stream().map(StudentStatusBind::getId).collect(Collectors.toList()));
             if (students == null) {
                 log.log(Level.WARN, "students is null");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
