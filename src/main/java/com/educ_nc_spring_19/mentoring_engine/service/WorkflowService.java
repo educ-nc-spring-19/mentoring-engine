@@ -29,7 +29,6 @@ public class WorkflowService {
     private final PoolService poolService;
     private final StageService stageService;
 
-    // TO DO: Addition vacant students to pools
     public Map<String, List<?>> init() {
 
         // delete all data
@@ -40,64 +39,77 @@ public class WorkflowService {
 
         Map<String, List<?>> result = new HashMap<>();
 
-        List<DirectionDTO> directionDTOS = masterDataClient.getAllDirections();
-        if (CollectionUtils.isNotEmpty(directionDTOS)) {
-            // create pools
-            List<Pool> pools = new LinkedList<>();
-            directionDTOS.forEach(directionDTO -> {
-                Pool pool = new Pool();
-                pool.setDirectionId(directionDTO.getId());
-                pools.add(pool);
-            });
+        Set<DirectionDTO> directionDTOS = new HashSet<>(masterDataClient.getAllDirections());
+        Set<MentorDTO> mentorDTOS = new HashSet<>(masterDataClient.getAllMentors());
+        Set<StudentDTO> studentDTOS = new HashSet<>(masterDataClient.getAllStudents());
 
-            List<Pool> createdPools = poolService.saveAll(pools);
-            log.log(Level.INFO, "Pools created: " + createdPools);
-            result.put("pools", createdPools);
-        } else {
-            log.log(Level.WARN, "There are no directions found!");
+        if (CollectionUtils.isEmpty(directionDTOS)
+                || CollectionUtils.isEmpty(mentorDTOS)
+                || CollectionUtils.isEmpty(studentDTOS)) {
+            log.log(Level.WARN, "Directions or Mentors, or Students is empty! Check Master Data.");
             return result;
         }
 
-        List<MentorDTO> mentorDTOS = masterDataClient.getAllMentors();
-        List<StudentDTO> studentDTOS = masterDataClient.getAllStudents();
+        // create cauldrons
+        Set<String> deptNames = mentorDTOS.stream()
+                .map(MentorDTO::getDeptName)
+                .collect(Collectors.toSet());
 
-        if (CollectionUtils.isEmpty(mentorDTOS)) {
-            log.log(Level.WARN, "There are no mentors found!");
-            return result;
-        } else if (CollectionUtils.isEmpty(studentDTOS)) {
-            log.log(Level.WARN, "There are no students found!");
-            return result;
-        } else {
-            Set<String> deptNames = new HashSet<>();
-            mentorDTOS.forEach(mentorDTO -> deptNames.add(mentorDTO.getDeptName()));
-            // create cauldrons
-            List<Cauldron> cauldrons = new LinkedList<>();
-            deptNames.forEach(name -> {
-                Cauldron cauldron = new Cauldron();
-                cauldron.setName(name + "'s cauldron");
-                cauldron.setDescription(name + " description");
+        Map<UUID, StudentDTO> vacantStudentIdDTOMap = new HashMap<>(studentDTOS.size());
+        studentDTOS.forEach(studentDTO -> vacantStudentIdDTOMap.put(studentDTO.getId(), studentDTO));
 
-                List<UUID> cauldronMentorIds = mentorDTOS.stream()
-                        .filter(mentorDTO -> mentorDTO.getDeptName().equals(name))
-                        .map(MentorDTO::getId)
-                        .collect(Collectors.toList());
-                cauldron.setMentors(cauldronMentorIds);
+        List<Cauldron> cauldrons = new LinkedList<>();
+        deptNames.forEach(name -> {
+            Cauldron cauldron = new Cauldron();
+            cauldron.setName(name + "'s cauldron");
+            cauldron.setDescription(name + " description");
 
-                List<UUID> cauldronStudentIds = studentDTOS.stream()
-                        .filter(studentDTO -> cauldronMentorIds.contains(studentDTO.getInterviewerId()))
-                        .map(StudentDTO::getId)
-                        .collect(Collectors.toList());
-                cauldron.setStudents(cauldronStudentIds);
+            List<UUID> cauldronMentorIds = mentorDTOS.stream()
+                    .filter(mentorDTO -> mentorDTO.getDeptName().equals(name))
+                    .map(MentorDTO::getId)
+                    .collect(Collectors.toList());
+            cauldron.setMentors(cauldronMentorIds);
 
-                cauldrons.add(cauldron);
+            List<UUID> cauldronStudentIds = studentDTOS.stream()
+                    .filter(studentDTO -> cauldronMentorIds.contains(studentDTO.getInterviewerId()))
+                    .map(StudentDTO::getId)
+                    .collect(Collectors.toList());
+            cauldron.setStudents(cauldronStudentIds);
+
+            cauldronStudentIds.forEach(vacantStudentIdDTOMap::remove);
+
+            cauldrons.add(cauldron);
+        });
+
+        List<Cauldron> createdCauldrons = cauldronService.saveAll(cauldrons);
+        log.log(Level.INFO, "Cauldrons created: " + createdCauldrons);
+        result.put("cauldrons", createdCauldrons);
+        // end create cauldrons
+
+        // create pools
+        List<Pool> pools = new LinkedList<>();
+        directionDTOS.forEach(directionDTO -> {
+            Pool pool = new Pool();
+            pool.setDirectionId(directionDTO.getId());
+
+            List<UUID> poolStudentIds = new LinkedList<>();
+            vacantStudentIdDTOMap.forEach((studentId, studentDTO) -> {
+                if (studentDTO.getDirectionId().equals(directionDTO.getId())) {
+                    poolStudentIds.add(studentId);
+                }
             });
+            poolStudentIds.forEach(vacantStudentIdDTOMap::remove);
 
-            List<Cauldron> createdCauldrons = cauldronService.saveAll(cauldrons);
-            log.log(Level.INFO, "Cauldrons created: " + createdCauldrons);
-            result.put("cauldrons", createdCauldrons);
-        }
+            pool.setStudents(poolStudentIds);
+            pools.add(pool);
+        });
 
-        // TO DO CREATE GROUPS
+        List<Pool> createdPools = poolService.saveAll(pools);
+        log.log(Level.INFO, "Pools created: " + createdPools);
+        result.put("pools", createdPools);
+        // end create pools
+
+        // create groups
         final UUID FIRST_STAGE_ID = UUID.fromString("390748bf-2b6a-4b4e-93c5-51f431eae1db");
         Optional<Stage> stage = stageService.findById(FIRST_STAGE_ID);
         if (!stage.isPresent()) {
@@ -118,6 +130,7 @@ public class WorkflowService {
         List<Group> createdGroups = groupService.saveAll(groups);
         log.log(Level.INFO, "Groups created: " + createdGroups);
         result.put("groups", createdGroups);
+        // end create groups
 
         return result;
     }
