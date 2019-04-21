@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,7 @@ public class BackupController {
 
     @GetMapping("/dropdown")
     public ResponseEntity<List<MentorDTO>> findVacantBackups() {
-        List<UUID> allEmployedBackupsIds = backupService.findAll();
+        Set<UUID> allEmployedBackupsIds = backupService.findAll();
         log.log(Level.INFO, "allEmployedBackupsIds: " + allEmployedBackupsIds);
 
         MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(userService.getCurrentUserId());
