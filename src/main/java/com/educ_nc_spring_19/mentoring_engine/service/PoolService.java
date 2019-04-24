@@ -7,6 +7,8 @@ import org.apache.commons.collections4.IterableUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -19,5 +21,17 @@ public class PoolService {
 
     public List<Pool> saveAll(Iterable<Pool> pools) {
         return IterableUtils.toList(poolRepository.saveAll(pools));
+    }
+
+    public Pool save(Pool pool) {
+        return poolRepository.save(pool);
+    }
+
+    public Optional<Pool> findByDirectionId(UUID directionId) {
+        return poolRepository.findByDirectionId(directionId);
+    }
+
+    public Optional<Pool> findByDirectionIdAndStudentsIs(UUID directionId, UUID studentId) {
+        return poolRepository.findByDirectionIdAndStudentsIs(directionId, studentId);
     }
 }

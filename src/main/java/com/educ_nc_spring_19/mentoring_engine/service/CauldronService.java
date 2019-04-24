@@ -7,6 +7,8 @@ import org.apache.commons.collections4.IterableUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -20,4 +22,13 @@ public class CauldronService {
     public List<Cauldron> saveAll(Iterable<Cauldron> cauldrons) {
         return IterableUtils.toList(cauldronRepository.saveAll(cauldrons));
     }
+
+    public Cauldron save(Cauldron cauldron) {
+        return cauldronRepository.save(cauldron);
+    }
+
+    public Optional<Cauldron> findByMentorsIsAndStudentsIs(UUID mentorId, UUID studentId) {
+        return cauldronRepository.findByMentorsIsAndStudentsIs(mentorId, studentId);
+    }
+
 }

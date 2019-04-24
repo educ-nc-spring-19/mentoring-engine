@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -20,6 +20,7 @@ public class Pool implements Auditable {
     @GeneratedValue
     private UUID id;
 
+    @Column(unique = true, nullable = false)
     private UUID directionId;
 
     @Embedded
@@ -32,6 +33,6 @@ public class Pool implements Auditable {
             name = "pool_student",
             joinColumns = @JoinColumn(name = "pool_id")
     )
-    @Column(name = "student_id", nullable = false)
-    private List<UUID> students;
+    @Column(name = "student_id", unique = true, nullable = false)
+    private Set<UUID> students;
 }

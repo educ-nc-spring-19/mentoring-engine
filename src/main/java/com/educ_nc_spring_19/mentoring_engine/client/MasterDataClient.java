@@ -48,18 +48,24 @@ public class MasterDataClient {
         return Collections.emptyList();
     }
 
-    public MentorDTO getMentorByUserId(UUID mentorUserId) {
+    public MentorDTO getMentorByUserId(UUID userId) {
+        if (userId == null) {
+            log.log(Level.WARN, "userId is null");
+            return null;
+        }
+
         ResponseEntity<List<MentorDTO>> response = restTemplate.exchange(
                 UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
                         .path("/master-data/rest/api/v1/mentor")
-                        .query("{userId}")
-                        .buildAndExpand(mentorUserId.toString()).toUri(),
+                        .queryParam("userId",userId.toString())
+                        .build().toUri(),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<MentorDTO>>(){});
 
         log.log(Level.INFO, "getMentorByUserId, response status = " + response.getStatusCode().toString());
-        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null && !response.getBody().isEmpty()) {
+        if (response.getStatusCode().equals(HttpStatus.OK) && CollectionUtils.isNotEmpty(response.getBody())) {
+            log.log(Level.INFO, "Mentors: " + response.getBody().stream().map(MentorDTO::getId).collect(Collectors.toList()));
             return response.getBody().get(0);
         }
 
@@ -75,7 +81,7 @@ public class MasterDataClient {
         ResponseEntity<List<MentorDTO>> response = restTemplate.exchange(
                 UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
                             .path("/master-data/rest/api/v1/mentor")
-                            .queryParam("{directionId}", directionId.toString())
+                            .queryParam("directionId", directionId.toString())
                             .build().toUri(),
                 HttpMethod.GET,
                 null,

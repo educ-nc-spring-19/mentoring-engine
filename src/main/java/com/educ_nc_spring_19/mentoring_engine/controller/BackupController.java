@@ -30,6 +30,7 @@ public class BackupController {
     private final MasterDataClient masterDataClient;
     private final UserService userService;
 
+    // TO DO: Fix dropdown method. Need more testing
     @GetMapping("/dropdown")
     public ResponseEntity<List<MentorDTO>> findVacantBackups() {
         Set<UUID> allEmployedBackupsIds = backupService.findAll();

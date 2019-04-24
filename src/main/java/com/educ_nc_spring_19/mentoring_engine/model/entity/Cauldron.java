@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -35,8 +35,8 @@ public class Cauldron implements Auditable {
             name = "cauldron_mentor",
             joinColumns = @JoinColumn(name = "cauldron_id")
     )
-    @Column(name = "mentor_id", nullable = false)
-    private List<UUID> mentors;
+    @Column(name = "mentor_id", unique = true, nullable = false)
+    private Set<UUID> mentors;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -46,6 +46,6 @@ public class Cauldron implements Auditable {
             name = "cauldron_student",
             joinColumns = @JoinColumn(name = "cauldron_id")
     )
-    @Column(name = "student_id", nullable = false)
-    private List<UUID> students;
+    @Column(name = "student_id", unique = true, nullable = false)
+    private Set<UUID> students;
 }

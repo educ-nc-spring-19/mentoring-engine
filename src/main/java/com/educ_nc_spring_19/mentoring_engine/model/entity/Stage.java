@@ -32,6 +32,8 @@ public class Stage implements Auditable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "stage", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "stage",
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Group> groups;
 }

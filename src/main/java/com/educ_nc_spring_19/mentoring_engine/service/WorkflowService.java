@@ -58,22 +58,22 @@ public class WorkflowService {
         Map<UUID, StudentDTO> vacantStudentIdDTOMap = new HashMap<>(studentDTOS.size());
         studentDTOS.forEach(studentDTO -> vacantStudentIdDTOMap.put(studentDTO.getId(), studentDTO));
 
-        List<Cauldron> cauldrons = new LinkedList<>();
+        Set<Cauldron> cauldrons = new HashSet<>();
         deptNames.forEach(name -> {
             Cauldron cauldron = new Cauldron();
             cauldron.setName(name + "'s cauldron");
             cauldron.setDescription(name + " description");
 
-            List<UUID> cauldronMentorIds = mentorDTOS.stream()
+            Set<UUID> cauldronMentorIds = mentorDTOS.stream()
                     .filter(mentorDTO -> mentorDTO.getDeptName().equals(name))
                     .map(MentorDTO::getId)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
             cauldron.setMentors(cauldronMentorIds);
 
-            List<UUID> cauldronStudentIds = studentDTOS.stream()
+            Set<UUID> cauldronStudentIds = studentDTOS.stream()
                     .filter(studentDTO -> cauldronMentorIds.contains(studentDTO.getInterviewerId()))
                     .map(StudentDTO::getId)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
             cauldron.setStudents(cauldronStudentIds);
 
             cauldronStudentIds.forEach(vacantStudentIdDTOMap::remove);
@@ -92,7 +92,7 @@ public class WorkflowService {
             Pool pool = new Pool();
             pool.setDirectionId(directionDTO.getId());
 
-            List<UUID> poolStudentIds = new LinkedList<>();
+            Set<UUID> poolStudentIds = new HashSet<>();
             vacantStudentIdDTOMap.forEach((studentId, studentDTO) -> {
                 if (studentDTO.getDirectionId().equals(directionDTO.getId())) {
                     poolStudentIds.add(studentId);

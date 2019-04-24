@@ -33,7 +33,7 @@ public class TeamController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<TeamDTO> find() {
+    public ResponseEntity find() {
         MentorDTO mentorDTO = masterDataClient.getMentorByUserId(userService.getCurrentUserId());
         if (mentorDTO == null) {
             log.log(Level.WARN, "find(): mentorDTO is null ");
