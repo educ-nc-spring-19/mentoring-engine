@@ -28,7 +28,7 @@ public class Pool implements Auditable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "pool_student",
             joinColumns = @JoinColumn(name = "pool_id")

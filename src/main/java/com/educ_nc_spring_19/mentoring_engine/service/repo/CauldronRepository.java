@@ -7,6 +7,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CauldronRepository extends CrudRepository<Cauldron, UUID> {
-    Optional<Cauldron> findByStudentsIs(UUID studentId);
     Optional<Cauldron> findByMentorsIsAndStudentsIs(UUID mentorId, UUID studentId);
+    Optional<Cauldron> findByMentorsIs(UUID mentorId);
 }

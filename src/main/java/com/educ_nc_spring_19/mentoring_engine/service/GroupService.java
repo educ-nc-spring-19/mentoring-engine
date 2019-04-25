@@ -46,8 +46,7 @@ public class GroupService {
     }
 
     public List<Group> findAll() {
-        List<Group> groups = new ArrayList<>();
-        groupRepository.findAll().forEach(groups::add);
+        List<Group> groups = IterableUtils.toList(groupRepository.findAll());
 
         log.log(Level.DEBUG,
                 "Groups found by findAll(): " + groups.stream().map(Group::getId).collect(Collectors.toList()));
@@ -55,8 +54,7 @@ public class GroupService {
     }
 
     public List<Group> findAllById(Iterable<UUID> ids) {
-        List<Group> groups = new ArrayList<>();
-        groupRepository.findAllById(ids).forEach(groups::add);
+        List<Group> groups = IterableUtils.toList(groupRepository.findAllById(ids));
 
         log.log(Level.DEBUG,
                 "Groups found by findAllById(): " + groups.stream().map(Group::getId).collect(Collectors.toList()));
@@ -92,13 +90,41 @@ public class GroupService {
         return group;
     }
 
-    public void delete(UUID id) {
-        groupRepository.deleteById(id);
+    public void deleteById(UUID id) throws NoSuchElementException {
+        Optional<Group> optionalGroup = groupRepository.findById(id);
+        if (!optionalGroup.isPresent()) {
+            throw new NoSuchElementException("Group(id=" + id + ") doesn't exist");
+        }
+
+        MentorDTO mentorDTO = getCurrentMentorDTO();
+        Group group = optionalGroup.get();
+        if (mentorDTO.getDirectionId() == null) {
+            throw new NoSuchElementException("Mentor(id=" + mentorDTO.getId() + ") direction is 'null'");
+        } else if (CollectionUtils.isNotEmpty(group.getStudents())) {
+            Optional<Pool> optionalPool = poolService.findByDirectionId(mentorDTO.getDirectionId());
+            if (optionalPool.isPresent()) {
+                Pool pool = optionalPool.get();
+
+                Set<UUID> studentIdsToAdd = group.getStudents().stream()
+                        .map(StudentStatusBind::getId)
+                        .collect(Collectors.toSet());
+
+                pool.getStudents().addAll(studentIdsToAdd);
+                pool = poolService.save(pool);
+
+                log.log(Level.INFO, "Pool(id=" + pool.getId() + ") updated with Students: " + studentIdsToAdd);
+            } else {
+                throw new NoSuchElementException("Pool for Direction(id=" + mentorDTO.getDirectionId() + ") is absent");
+            }
+        }
+
+        groupRepository.delete(group);
         log.log(Level.INFO, "Group(id=" + id + ") deleted");
     }
 
     public void deleteAll() {
         groupRepository.deleteAll();
+        log.log(Level.INFO, "All Groups deleted");
     }
 
     private MentorDTO getCurrentMentorDTO() throws NoSuchElementException {
@@ -106,8 +132,8 @@ public class GroupService {
         MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(currentUserId);
 
         if (currentMentorDTO == null) {
-            log.log(Level.WARN, "Can't find Mentor by user(id=" + currentUserId.toString() + ")");
-            throw new NoSuchElementException("Can't find Mentor by user(id=" + currentUserId.toString() + ")");
+            log.log(Level.WARN, "Can't find Mentor by User(id=" + currentUserId.toString() + ")");
+            throw new NoSuchElementException("Can't find Mentor by User(id=" + currentUserId.toString() + ")");
         }
 
         return currentMentorDTO;
@@ -116,9 +142,8 @@ public class GroupService {
     // TO DO (??): Check in Master Data for backup existence
     public Group setBackupId(UUID backupId) throws IllegalArgumentException, NoSuchElementException {
         MentorDTO currentMentorDTO = getCurrentMentorDTO();
-        UUID mentorId = currentMentorDTO.getId();
         // find Group for current mentor
-        Optional<Group> optionalGroup = groupRepository.findByMentorId(mentorId);
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
 
         if (optionalGroup.isPresent()) {
             Group group = optionalGroup.get();
@@ -128,7 +153,7 @@ public class GroupService {
             log.log(Level.INFO, "Mentor(id=" + backupId + ") was set as backup for Group(id=" + group.getId() + ")");
             return group;
         } else {
-            throw new IllegalArgumentException("Group for Mentor(id=" + mentorId + ") doesn't exist");
+            throw new IllegalArgumentException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
         }
     }
 
@@ -136,32 +161,38 @@ public class GroupService {
         return IterableUtils.toList(groupRepository.saveAll(groups));
     }
 
-    public Group addStudentId(UUID studentId) throws IllegalArgumentException, NoSuchElementException {
+    public Group save(Group group) {
+        return groupRepository.save(group);
+    }
 
+    public Group addStudentId(UUID studentId) throws IllegalArgumentException, NoSuchElementException {
+        // get current mentor
         MentorDTO currentMentorDTO = getCurrentMentorDTO();
-        UUID mentorId = currentMentorDTO.getId();
         // find Group for current mentor
-        Optional<Group> optionalGroup = groupRepository.findByMentorId(mentorId);
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
 
         if (optionalGroup.isPresent()) {
             Group group = optionalGroup.get();
             if (CollectionUtils.isNotEmpty(group.getStudents())
                     && group.getStudents().stream().map(StudentStatusBind::getId).anyMatch(id -> id.equals(studentId))) {
-                throw new IllegalArgumentException("Student(id=" + studentId + ") already in group id=" + group.getId());
+                throw new IllegalArgumentException("Student(id=" + studentId
+                        + ") already in Group(id=" + group.getId() + ")");
             }
 
             StudentDTO studentDTO = masterDataClient.getStudentById(studentId);
             if (studentDTO == null) {
                 throw new IllegalArgumentException("Can't get Student(id=" + studentId + ") from master-data service.");
-            }
-
-            UUID studentDirectionId = studentDTO.getDirectionId();
-            if (studentDirectionId == null) {
-                throw new NoSuchElementException("Student(id=" + studentId + ") direction 'null' is null");
+            } else if (studentDTO.getDirectionId() == null) {
+                throw new NoSuchElementException("Student(id=" + studentId + ") direction is null");
+            } else if (!studentDTO.getDirectionId().equals(currentMentorDTO.getDirectionId())) {
+                throw new IllegalArgumentException("Can't add Student(id=" + studentId
+                        + ") with Direction(id=" + studentDTO.getDirectionId()
+                        + ") to Group(id=" + group.getId()
+                        + ") with Direction(id=" + currentMentorDTO.getDirectionId());
             }
 
             // delete student from pool, if it present
-            poolService.findByDirectionIdAndStudentsIs(studentDirectionId, studentId).ifPresent(pool -> {
+            poolService.findByDirectionIdAndStudentsIs(studentDTO.getDirectionId(), studentId).ifPresent(pool -> {
                 pool.getStudents().remove(studentId);
                 Pool savedPool = poolService.save(pool);
                 log.log(Level.INFO, "Student(id=" + studentId
@@ -169,7 +200,7 @@ public class GroupService {
             });
 
             // delete student from current mentor cauldron, if it present
-            cauldronService.findByMentorsIsAndStudentsIs(mentorId, studentId).ifPresent(cauldron -> {
+            cauldronService.findByMentorsIsAndStudentsIs(currentMentorDTO.getId(), studentId).ifPresent(cauldron -> {
                 cauldron.getStudents().remove(studentId);
                 Cauldron savedCauldron = cauldronService.save(cauldron);
                 log.log(Level.INFO, "Student(id=" + studentId
@@ -183,7 +214,64 @@ public class GroupService {
             log.log(Level.INFO, "Student(id=" + studentId + ") added to Group(id=" + group.getId() + ")");
             return group;
         } else {
-            throw new NoSuchElementException("Group for Mentor(id=" + mentorId.toString() + ") doesn't exist");
+            throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId().toString()
+                    + ") doesn't exist");
+        }
+    }
+
+    public Group removeStudentId(UUID studentId) throws IllegalArgumentException, NoSuchElementException {
+        // get current mentor
+        MentorDTO currentMentorDTO = getCurrentMentorDTO();
+        // find Group for current mentor
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
+
+        if (optionalGroup.isPresent()) {
+            Group group = optionalGroup.get();
+
+            List<StudentStatusBind> studentStatusBinds = group.getStudents();
+            if (CollectionUtils.isEmpty(studentStatusBinds)
+                    || studentStatusBinds.stream().map(StudentStatusBind::getId)
+                            .noneMatch(id -> id.equals(studentId))) {
+                throw new IllegalArgumentException("Student(id=" + studentId
+                        + ") is absent in Group(id=" + group.getId() + ")");
+            }
+
+            StudentDTO studentDTO = masterDataClient.getStudentById(studentId);
+            if (studentDTO == null) {
+                throw new IllegalArgumentException("Can't get Student(id=" + studentId + ") from master-data service");
+            } else if (studentDTO.getDirectionId() == null) {
+                throw new NoSuchElementException("Student(id=" + studentId + ") direction is null");
+            }
+
+            Optional<Pool> optionalPool = poolService.findByDirectionId(studentDTO.getDirectionId());
+            if (!optionalPool.isPresent()) {
+                throw new NoSuchElementException("There is no Pool for Direction(id=" + studentDTO.getDirectionId() + ")");
+            }
+
+            // remove  student from group
+            studentStatusBinds.remove(studentStatusBinds.stream()
+                    .filter(bind -> studentId.equals(bind.getId()))
+                    .findAny()
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Student(id=" + studentId.toString() + ") is absent in Group")
+                    )
+            );
+
+            // add student to his direction pool
+            Pool pool = optionalPool.get();
+            pool.getStudents().add(studentId);
+
+            // save data to DB
+            group = save(group);
+            pool = poolService.save(pool);
+
+            log.log(Level.INFO, "Student(id=" + studentId
+                    + ") removed from Group(id=" + group.getId()
+                    + ") and added to Pool(id=" + pool.getId() + ")");
+
+            return group;
+        } else {
+            throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId().toString() + ") doesn't exist");
         }
     }
 }

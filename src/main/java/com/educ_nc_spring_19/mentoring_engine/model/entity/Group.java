@@ -30,7 +30,6 @@ public class Group implements Auditable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stage_id", nullable = false)
     private Stage stage;
@@ -43,9 +42,8 @@ public class Group implements Auditable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @JsonIgnore
     @Embedded
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "group_student",
             joinColumns = @JoinColumn(name = "group_id")

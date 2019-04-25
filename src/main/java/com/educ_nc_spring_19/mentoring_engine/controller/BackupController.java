@@ -4,11 +4,13 @@ import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.mentoring_engine.client.MasterDataClient;
 import com.educ_nc_spring_19.mentoring_engine.service.BackupService;
 import com.educ_nc_spring_19.mentoring_engine.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Level;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,14 +31,22 @@ public class BackupController {
     private final BackupService backupService;
     private final MasterDataClient masterDataClient;
     private final UserService userService;
+    private final ObjectMapper objectMapper;
 
-    // TO DO: Fix dropdown method. Need more testing
-    @GetMapping("/dropdown")
-    public ResponseEntity<List<MentorDTO>> findVacantBackups() {
+    @GetMapping(path = "/dropdown", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity findVacantBackups() {
         Set<UUID> allEmployedBackupsIds = backupService.findAll();
         log.log(Level.INFO, "allEmployedBackupsIds: " + allEmployedBackupsIds);
 
         MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(userService.getCurrentUserId());
+        if (currentMentorDTO == null) {
+            log.log(Level.WARN, "Can't find Mentor by User(id=" + userService.getCurrentUserId().toString() + ")");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(objectMapper.createObjectNode().put(
+                            "message","Can't find Mentor by User(id="
+                                    + userService.getCurrentUserId().toString() + ")")
+                    );
+        }
         UUID currentMentorDirectionId = currentMentorDTO.getDirectionId();
         log.log(Level.INFO, "currentMentorDirectionId: " + currentMentorDirectionId.toString());
 

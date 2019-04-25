@@ -29,7 +29,6 @@ public class Cauldron implements Auditable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @JsonIgnore
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "cauldron_mentor",
@@ -40,7 +39,6 @@ public class Cauldron implements Auditable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @JsonIgnore
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "cauldron_student",

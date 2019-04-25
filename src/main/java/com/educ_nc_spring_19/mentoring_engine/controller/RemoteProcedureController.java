@@ -36,7 +36,7 @@ public class RemoteProcedureController {
 
     @SuppressWarnings("unchecked")
     @PostMapping(path = "/workflow-init", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> workflowInit() {
+    public ResponseEntity workflowInit() {
         Map<String, List<?>> resultOfInit = workflowService.init();
         if (MapUtils.isEmpty(resultOfInit)) {
             log.log(Level.WARN, "result of workflow init is empty");
