@@ -29,14 +29,13 @@ public class CauldronController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity find(@RequestParam(value = "id", required = false) List<UUID> ids) {
 
-        Set<Cauldron> cauldrons = new HashSet<>();
-
         if (CollectionUtils.isEmpty(ids)) {
-            cauldrons.addAll(cauldronService.findAll());
-        } else {
-            cauldrons.addAll(cauldronService.findAllById(ids));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(cauldronMapper.toCauldronsDTO(cauldronService.findAll()));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(cauldronMapper.toCauldronsDTO(new ArrayList<>(cauldrons)));
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(cauldronMapper.toCauldronsDTO(cauldronService.findAllById(ids)));
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

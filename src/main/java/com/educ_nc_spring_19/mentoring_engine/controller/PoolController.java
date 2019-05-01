@@ -26,14 +26,13 @@ public class PoolController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity find(@RequestParam(value = "id", required = false) List<UUID> ids) {
 
-        Set<Pool> pools = new HashSet<>();
-
         if (CollectionUtils.isEmpty(ids)) {
-            pools.addAll(poolService.findAll());
-        } else {
-            pools.addAll(poolService.findAllById(ids));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(poolMapper.toPoolsDTO(poolService.findAll()));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(poolMapper.toPoolsDTO(new ArrayList<>(pools)));
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(poolMapper.toPoolsDTO(poolService.findAllById(ids)));
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

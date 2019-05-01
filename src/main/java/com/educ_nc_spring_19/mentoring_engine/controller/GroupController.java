@@ -31,15 +31,13 @@ public class GroupController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity find(@RequestParam(value = "id", required = false) List<UUID> ids) {
 
-        Set<Group> groupsToResponse = new HashSet<>();
-
         if (CollectionUtils.isEmpty(ids)) {
-            groupsToResponse.addAll(groupService.findAll());
-        } else {
-            groupsToResponse.addAll(groupService.findAllById(ids));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(groupMapper.toGroupsDTO(groupService.findAll()));
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(groupMapper.toGroupsDTO(new ArrayList<>(groupsToResponse)));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(groupMapper.toGroupsDTO(groupService.findAllById(ids)));
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
