@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface GroupRepository extends CrudRepository<Group, UUID> {
     Optional<Group> findByMentorId(UUID mentorId);
+    Iterable<Group> findAllByStageId(UUID stageId);
 }

@@ -31,6 +31,9 @@ public class GroupService {
     private final CauldronService cauldronService;
     private final UserService userService;
 
+    private static final UUID DISTRIBUTION_STAGE_ID = UUID.fromString("390748bf-2b6a-4b4e-93c5-51f431eae1db");
+    private static final UUID FIRST_MEETING_STAGE_ID = UUID.fromString("d3674b05-f966-45cb-9216-d2a103ce139f");
+
     public Optional<Group> findByMentorId(UUID mentorId) {
         Optional<Group> optionalGroup = groupRepository.findByMentorId(mentorId);
         optionalGroup.ifPresent(group ->
@@ -61,8 +64,16 @@ public class GroupService {
         return groups;
     }
 
+    public List<Group> findAllByStageId(UUID stageId) {
+        List<Group> groups = IterableUtils.toList(groupRepository.findAllByStageId(stageId));
+
+        log.log(Level.DEBUG,
+                "Groups found by findAllById(): " + groups.stream().map(Group::getId).collect(Collectors.toList()));
+        return groups;
+    }
+
     public Group create(String name) throws IllegalArgumentException, NoSuchElementException {
-        MentorDTO currentMentorDTO = getCurrentMentorDTO();
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
         UUID mentorId = currentMentorDTO.getId();
 
         Optional<Group> optionalGroup = findByMentorId(mentorId);
@@ -75,14 +86,14 @@ public class GroupService {
         group.setName(name);
         group.setMentorId(mentorId);
 
-        final UUID FIRST_STAGE_ID = UUID.fromString("390748bf-2b6a-4b4e-93c5-51f431eae1db");
-        Optional<Stage> stage = stageService.findById(FIRST_STAGE_ID);
+        //final UUID DISTRIBUTION_STAGE_ID = UUID.fromString("390748bf-2b6a-4b4e-93c5-51f431eae1db");
+        Optional<Stage> stage = stageService.findById(DISTRIBUTION_STAGE_ID);
         if (stage.isPresent()) {
             group.setStage(stage.get());
-            group.setStageId(FIRST_STAGE_ID);
+            group.setStageId(DISTRIBUTION_STAGE_ID);
         } else {
-            throw new IllegalArgumentException("Can't create new group cause illegal UUID in 'FIRST_STAGE_ID': '"
-                    + FIRST_STAGE_ID.toString() + "'");
+            throw new IllegalArgumentException("Can't create new group cause illegal UUID in 'DISTRIBUTION_STAGE_ID': '"
+                    + DISTRIBUTION_STAGE_ID.toString() + "'");
         }
 
         group = groupRepository.save(group);
@@ -96,7 +107,7 @@ public class GroupService {
             throw new NoSuchElementException("Group(id=" + id + ") doesn't exist");
         }
 
-        MentorDTO mentorDTO = getCurrentMentorDTO();
+        MentorDTO mentorDTO = this.getCurrentMentorDTO();
         Group group = optionalGroup.get();
         if (mentorDTO.getDirectionId() == null) {
             throw new NoSuchElementException("Mentor(id=" + mentorDTO.getId() + ") direction is 'null'");
@@ -141,7 +152,7 @@ public class GroupService {
 
     // TO DO (??): Check in Master Data for backup existence
     public Group setBackupId(UUID backupId) throws IllegalArgumentException, NoSuchElementException {
-        MentorDTO currentMentorDTO = getCurrentMentorDTO();
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
         // find Group for current mentor
         Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
 
@@ -167,7 +178,7 @@ public class GroupService {
 
     public Group addStudentId(UUID studentId) throws IllegalArgumentException, NoSuchElementException {
         // get current mentor
-        MentorDTO currentMentorDTO = getCurrentMentorDTO();
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
         // find Group for current mentor
         Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
 
@@ -214,14 +225,13 @@ public class GroupService {
             log.log(Level.INFO, "Student(id=" + studentId + ") added to Group(id=" + group.getId() + ")");
             return group;
         } else {
-            throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId().toString()
-                    + ") doesn't exist");
+            throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
         }
     }
 
     public Group removeStudentId(UUID studentId) throws IllegalArgumentException, NoSuchElementException {
         // get current mentor
-        MentorDTO currentMentorDTO = getCurrentMentorDTO();
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
         // find Group for current mentor
         Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
 
@@ -273,5 +283,61 @@ public class GroupService {
         } else {
             throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId().toString() + ") doesn't exist");
         }
+    }
+
+    public Group setFirstMeetingStage() throws IllegalArgumentException, IllegalStateException, NoSuchElementException {
+        // get current mentor
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
+        // find Group for current mentor
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
+        if (optionalGroup.isPresent()) {
+            Group group = optionalGroup.get();
+            if (!DISTRIBUTION_STAGE_ID.equals(group.getStage().getId())) {
+                throw new IllegalStateException("Group(id=" + group.getId() + ") has an illegal Stage(id="
+                        + group.getStage().getId() + "). Required Stage(id=" + DISTRIBUTION_STAGE_ID + ")");
+            }
+
+            Optional<Stage> optionalStage = stageService.findById(FIRST_MEETING_STAGE_ID);
+            if (!optionalStage.isPresent()) {
+                throw new IllegalArgumentException("Can't find Stage(id=" + FIRST_MEETING_STAGE_ID + ")");
+            }
+
+            // setting stage
+            this.setStage(group, optionalStage.get());
+
+            // saving updated group
+            group = groupRepository.save(group);
+
+            log.log(Level.INFO, "Group(id=" + group.getId() + ") stage changed to Stage(id=" + FIRST_MEETING_STAGE_ID + ")");
+            return group;
+        } else {
+            throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
+        }
+    }
+
+    public List<Group> setFirstMeetingStageBulk() throws IllegalArgumentException {
+        List<Group> groups = IterableUtils.toList(groupRepository.findAllByStageId(DISTRIBUTION_STAGE_ID));
+        if (CollectionUtils.isEmpty(groups)) {
+            log.log(Level.INFO, "There are no groups found for Stage(id=" + DISTRIBUTION_STAGE_ID + ")");
+            return Collections.emptyList();
+        }
+
+        Optional<Stage> optionalStage = stageService.findById(FIRST_MEETING_STAGE_ID);
+        if (!optionalStage.isPresent()) {
+            throw new IllegalArgumentException("Can't find Stage(id=" + FIRST_MEETING_STAGE_ID + ")");
+        }
+
+        // setting stage to groups
+        groups.forEach(group -> this.setStage(group, optionalStage.get()));
+
+        // saving updated groups
+        groups = IterableUtils.toList(groupRepository.saveAll(groups));
+        return groups;
+    }
+
+    private void setStage(Group group, Stage stage) {
+        group.setStage(stage);
+        group.setStageId(stage.getId());
+        log.log(Level.INFO, "Set Stage(id=" + stage.getId() + ") to Group(id=" + group.getId() + ")");
     }
 }
