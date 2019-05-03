@@ -121,7 +121,7 @@ public class RemoteProcedureController {
                 responseMessage = "You have successfully accepted the invitation";
                 break;
             case REJECT:
-                log.info("InviteState is " + responseState + "'");
+                log.info("InviteState is '" + responseState + "'");
                 responseMessage = "You have successfully rejected the invitation";
                 break;
             default:

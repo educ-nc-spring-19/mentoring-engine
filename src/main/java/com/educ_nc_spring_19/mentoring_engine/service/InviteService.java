@@ -33,6 +33,7 @@ public class InviteService {
     private static final Integer MESSAGE_ARGS_QUANTITY = 5;
     private static final String ENCRYPTION_KEY = "ASWz8Eie5TN3aQsrITKQo9Dv8uyjhtzl";
     private static final String APP_BASE_URL = "http://localhost:55010";
+    private static final String INVITE_PATH = "/mentoring-engine/rest/api/v1/rpc/invite?link=";
 
     private final GroupService groupService;
 
@@ -67,10 +68,10 @@ public class InviteService {
                             studentId,
                             new InviteLinkPair(
                                     new URL(APP_BASE_URL
-                                            + "/mentoring-engine/rest/api/v1/rpc/invite?link="
+                                            + INVITE_PATH
                                             + URLEncoder.encode(encryptedAcceptMessage, "UTF-8")),
                                     new URL(APP_BASE_URL
-                                            + "/mentoring-engine/rest/api/v1/rpc/invite?link="
+                                            + INVITE_PATH
                                             + URLEncoder.encode(encryptedRejectMessage, "UTF-8"))
                             )
                     );
@@ -137,13 +138,14 @@ public class InviteService {
 
             inviteLinkPair = new InviteLinkPair(
                     new URL(APP_BASE_URL
-                            + "/mentoring-engine/rest/api/v1/rpc/invite?link="
+                            + INVITE_PATH
                             + URLEncoder.encode(encryptedAcceptMessage, "UTF-8")),
                     new URL(APP_BASE_URL
-                            + "/mentoring-engine/rest/api/v1/rpc/invite?link="
+                            + INVITE_PATH
                             + URLEncoder.encode(encryptedRejectMessage, "UTF-8"))
             );
 
+            // you must save updated group in calling method
             if (!student.getStatus().equals(StudentStatus.INVITED)) {
                 log.log(Level.INFO, "Set Student(id=" + studentId + ") status to '" + StudentStatus.INVITED + "'");
                 student.setStatus(StudentStatus.INVITED);
