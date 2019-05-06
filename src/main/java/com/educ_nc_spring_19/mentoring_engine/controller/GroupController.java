@@ -145,6 +145,25 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.OK).body(groupDTO);
     }
 
+    @GetMapping(path = "/first-stage", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity setFirstMeetingStage() {
+        GroupDTO groupDTO;
+        try {
+            groupDTO = groupMapper.toGroupDTO(groupService.setFirstMeetingStage());
+        } catch (IllegalArgumentException iAE) {
+            log.log(Level.WARN, iAE);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
+        } catch (IllegalStateException iSE) {
+            log.log(Level.WARN, iSE);
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(iSE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(groupDTO);
+    }
+
     @DeleteMapping(path = "/{id}")
     public ResponseEntity deleteById(@PathVariable(name = "id") UUID id) {
         try {

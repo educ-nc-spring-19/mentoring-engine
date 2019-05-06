@@ -31,13 +31,20 @@ public class GroupService {
     private final CauldronService cauldronService;
     private final UserService userService;
 
-    private static final UUID DISTRIBUTION_STAGE_ID = UUID.fromString("390748bf-2b6a-4b4e-93c5-51f431eae1db");
-    private static final UUID FIRST_MEETING_STAGE_ID = UUID.fromString("d3674b05-f966-45cb-9216-d2a103ce139f");
+    private static final Long DISTRIBUTION_STAGE_ORDER = 1L;
+    private static final Long FIRST_MEETING_STAGE_ORDER = 2L;
 
     public Optional<Group> findByMentorId(UUID mentorId) {
         Optional<Group> optionalGroup = groupRepository.findByMentorId(mentorId);
         optionalGroup.ifPresent(group ->
                 log.log(Level.DEBUG,"Group(id=" + group.getId() + ") found by Mentor(id=" + mentorId + ")"));
+        return optionalGroup;
+    }
+
+    public Optional<Group> findByStudentsIs(UUID studentId) {
+        Optional<Group> optionalGroup = groupRepository.findByStudentsIs(studentId);
+        optionalGroup.ifPresent(group ->
+                log.log(Level.DEBUG,"Group(id=" + group.getId() + ") found by Student(id=" + studentId + ")"));
         return optionalGroup;
     }
 
@@ -86,14 +93,14 @@ public class GroupService {
         group.setName(name);
         group.setMentorId(mentorId);
 
-        //final UUID DISTRIBUTION_STAGE_ID = UUID.fromString("390748bf-2b6a-4b4e-93c5-51f431eae1db");
-        Optional<Stage> stage = stageService.findById(DISTRIBUTION_STAGE_ID);
+//        Optional<Stage> stage = stageService.findById(DISTRIBUTION_STAGE_ID);
+        Optional<Stage> stage = stageService.findByOrder(DISTRIBUTION_STAGE_ORDER);
         if (stage.isPresent()) {
             group.setStage(stage.get());
-            group.setStageId(DISTRIBUTION_STAGE_ID);
+            group.setStageId(stage.get().getId());
         } else {
-            throw new IllegalArgumentException("Can't create new group cause illegal UUID in 'DISTRIBUTION_STAGE_ID': '"
-                    + DISTRIBUTION_STAGE_ID.toString() + "'");
+            throw new IllegalArgumentException("Can't create new group cause illegal value in 'DISTRIBUTION_STAGE_ORDER': '"
+                    + DISTRIBUTION_STAGE_ORDER.toString() + "'");
         }
 
         group = groupRepository.save(group);
@@ -143,8 +150,8 @@ public class GroupService {
         MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(currentUserId);
 
         if (currentMentorDTO == null) {
-            log.log(Level.WARN, "Can't find Mentor by User(id=" + currentUserId.toString() + ")");
-            throw new NoSuchElementException("Can't find Mentor by User(id=" + currentUserId.toString() + ")");
+            log.log(Level.WARN, "Can't find Mentor by User(id=" + currentUserId + ")");
+            throw new NoSuchElementException("Can't find Mentor by User(id=" + currentUserId + ")");
         }
 
         return currentMentorDTO;
@@ -292,23 +299,24 @@ public class GroupService {
         Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
         if (optionalGroup.isPresent()) {
             Group group = optionalGroup.get();
-            if (!DISTRIBUTION_STAGE_ID.equals(group.getStage().getId())) {
-                throw new IllegalStateException("Group(id=" + group.getId() + ") has an illegal Stage(id="
-                        + group.getStage().getId() + "). Required Stage(id=" + DISTRIBUTION_STAGE_ID + ")");
+            if (!DISTRIBUTION_STAGE_ORDER.equals(group.getStage().getOrder())) {
+                throw new IllegalStateException("Group(id=" + group.getId() + ") has an illegal Stage(order="
+                        + group.getStage().getOrder() + "). Required Stage(order=" + DISTRIBUTION_STAGE_ORDER + ")");
             }
 
-            Optional<Stage> optionalStage = stageService.findById(FIRST_MEETING_STAGE_ID);
+//            Optional<Stage> optionalStage = stageService.findById(FIRST_MEETING_STAGE_ID);
+            Optional<Stage> optionalStage = stageService.findByOrder(FIRST_MEETING_STAGE_ORDER);
             if (!optionalStage.isPresent()) {
-                throw new IllegalArgumentException("Can't find Stage(id=" + FIRST_MEETING_STAGE_ID + ")");
+                throw new IllegalArgumentException("Can't find Stage(order=" + FIRST_MEETING_STAGE_ORDER + ")");
             }
 
             // setting stage
-            this.setStage(group, optionalStage.get());
+            GroupService.setStage(group, optionalStage.get());
 
             // saving updated group
             group = groupRepository.save(group);
 
-            log.log(Level.INFO, "Group(id=" + group.getId() + ") stage changed to Stage(id=" + FIRST_MEETING_STAGE_ID + ")");
+            log.log(Level.INFO, "Group(id=" + group.getId() + ") stage changed to Stage(id=" + optionalStage.get().getId() + ")");
             return group;
         } else {
             throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
@@ -316,26 +324,32 @@ public class GroupService {
     }
 
     public List<Group> setFirstMeetingStageBulk() throws IllegalArgumentException {
-        List<Group> groups = IterableUtils.toList(groupRepository.findAllByStageId(DISTRIBUTION_STAGE_ID));
+
+        Optional<Stage> optionalDistributionStage = stageService.findByOrder(DISTRIBUTION_STAGE_ORDER);
+        if (!optionalDistributionStage.isPresent()) {
+            throw new IllegalArgumentException("Can't find Stage(order=" + DISTRIBUTION_STAGE_ORDER + ")");
+        }
+
+        List<Group> groups = IterableUtils.toList(groupRepository.findAllByStageId(optionalDistributionStage.get().getId()));
         if (CollectionUtils.isEmpty(groups)) {
-            log.log(Level.INFO, "There are no groups found for Stage(id=" + DISTRIBUTION_STAGE_ID + ")");
+            log.log(Level.INFO, "There are no groups found for Stage(id=" + optionalDistributionStage.get().getId() + ")");
             return Collections.emptyList();
         }
 
-        Optional<Stage> optionalStage = stageService.findById(FIRST_MEETING_STAGE_ID);
+        Optional<Stage> optionalStage = stageService.findByOrder(FIRST_MEETING_STAGE_ORDER);
         if (!optionalStage.isPresent()) {
-            throw new IllegalArgumentException("Can't find Stage(id=" + FIRST_MEETING_STAGE_ID + ")");
+            throw new IllegalArgumentException("Can't find Stage(order=" + FIRST_MEETING_STAGE_ORDER + ")");
         }
 
         // setting stage to groups
-        groups.forEach(group -> this.setStage(group, optionalStage.get()));
+        groups.forEach(group -> GroupService.setStage(group, optionalStage.get()));
 
         // saving updated groups
         groups = IterableUtils.toList(groupRepository.saveAll(groups));
         return groups;
     }
 
-    private void setStage(Group group, Stage stage) {
+    private static void setStage(Group group, Stage stage) {
         group.setStage(stage);
         group.setStageId(stage.getId());
         log.log(Level.INFO, "Set Stage(id=" + stage.getId() + ") to Group(id=" + group.getId() + ")");

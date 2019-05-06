@@ -11,6 +11,8 @@ import com.educ_nc_spring_19.mentoring_engine.service.InviteService;
 import com.educ_nc_spring_19.mentoring_engine.service.WorkflowService;
 import com.educ_nc_spring_19.mentoring_engine.util.InviteLinkPair;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -62,7 +64,7 @@ public class RemoteProcedureController {
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
+/*
     @SuppressWarnings("unchecked")
     @GetMapping(path = "/first-meeting", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setGroupFirstMeeting() {
@@ -91,6 +93,42 @@ public class RemoteProcedureController {
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+*/
+    @GetMapping(path = "/get-invites")
+    public ResponseEntity getGroupInviteLinks() {
+        Map<UUID, InviteLinkPair> studentIdLinks;
+        try {
+            studentIdLinks = inviteService.getGroupInviteLinks();
+        } catch (IllegalArgumentException iAE) {
+            log.log(Level.WARN, iAE);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        if (MapUtils.isEmpty(studentIdLinks)) {
+            log.log(Level.INFO, "studentIdLinks map is empty");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+
+        ArrayNode responseNode = objectMapper.createArrayNode();
+        studentIdLinks.forEach((id, linkPair) -> {
+            ObjectNode studentNode = objectMapper.createObjectNode();
+            studentNode.put("studentId", id.toString());
+
+            ObjectNode linksNode = objectMapper.createObjectNode();
+            linksNode.put("accept", linkPair.getAcceptLink().toString());
+            linksNode.put("decline", linkPair.getDeclineLink().toString());
+
+            studentNode.set("links", linksNode);
+            responseNode.add(studentNode);
+        });
+
+        log.log(Level.INFO, "responseNode size(): " + responseNode.size());
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseNode);
     }
 
     @GetMapping(path = "/invite", produces = MediaType.APPLICATION_JSON_VALUE)

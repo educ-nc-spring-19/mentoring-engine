@@ -114,10 +114,10 @@ public class WorkflowService {
         // end create pools
 
         // create groups
-        final UUID FIRST_STAGE_ID = UUID.fromString("390748bf-2b6a-4b4e-93c5-51f431eae1db");
-        Optional<Stage> stage = stageService.findById(FIRST_STAGE_ID);
+        final long DISTRIBUTION_STAGE_ORDER = 1L;
+        Optional<Stage> stage = stageService.findByOrder(DISTRIBUTION_STAGE_ORDER);
         if (!stage.isPresent()) {
-            log.log(Level.WARN, "Stage with ID=" + FIRST_STAGE_ID + " doesn't exist! No groups created.");
+            log.log(Level.WARN, "Stage(order=" + DISTRIBUTION_STAGE_ORDER + ") doesn't exist! No groups created.");
             return result;
         }
 
@@ -139,23 +139,8 @@ public class WorkflowService {
         return result;
     }
 
-    public Map<String, Object> setFirstMeetingGroupStageAndGetInviteLinks()
-            throws IllegalArgumentException,
-            IllegalStateException,
-            NoSuchElementException {
-
-        Group group = groupService.setFirstMeetingStage();
-        Map<UUID, InviteLinkPair> studentIdLinks = inviteService.getInviteLinks(group);
-        // save group after update student statuses
-        group = groupService.save(group);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("group", group);
-        result.put("links", studentIdLinks);
-
-        return result;
-    }
-
+    // TO DO: REFACTOR
+    /*
     public MultiValuedMap<String, Object> setFirstMeetingGroupStageAndGetInviteLinksBulk() throws IllegalArgumentException {
 
         List<Group> groups = groupService.setFirstMeetingStageBulk();
@@ -163,9 +148,9 @@ public class WorkflowService {
             MultiValuedMap<String, Object> result = new ArrayListValuedHashMap<>(groups.size());
             List<Map<UUID, InviteLinkPair>> groupsStudentIdLinks = new LinkedList<>();
 
-            groups.forEach(group -> groupsStudentIdLinks.add(inviteService.getInviteLinks(group)));
+            groups.forEach(group -> groupsStudentIdLinks.add(inviteService.getGroupInviteLinks(group)));
 
-            // save all groups after student status update
+            // save all groups after student status update !! REFACTOR
             groups = groupService.saveAll(groups);
 
             // delete all pools
@@ -182,4 +167,5 @@ public class WorkflowService {
             return new ArrayListValuedHashMap<>();
         }
     }
+    */
 }

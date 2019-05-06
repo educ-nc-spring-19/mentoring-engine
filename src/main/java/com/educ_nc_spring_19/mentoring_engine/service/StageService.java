@@ -16,4 +16,8 @@ public class StageService {
     public Optional<Stage> findById(UUID id) {
         return stageRepository.findById(id);
     }
+
+    public Optional<Stage> findByOrder(Long order) {
+        return stageRepository.findByOrder(order);
+    }
 }

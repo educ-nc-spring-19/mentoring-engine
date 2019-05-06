@@ -1,7 +1,9 @@
 package com.educ_nc_spring_19.mentoring_engine.service;
 
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.StudentStatusBind;
+import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.enums.StudentStatus;
+import com.educ_nc_spring_19.mentoring_engine.client.MasterDataClient;
 import com.educ_nc_spring_19.mentoring_engine.enums.InviteState;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
 import com.educ_nc_spring_19.mentoring_engine.util.Encryption;
@@ -12,6 +14,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Level;
 import org.springframework.stereotype.Service;
@@ -41,9 +44,41 @@ public class InviteService {
 
     private final GroupService groupService;
     private final ObjectMapper objectMapper;
+    private final UserService userService;
+    private final MasterDataClient masterDataClient;
 
-    @SuppressWarnings("Duplicates")
-    public Map<UUID, InviteLinkPair> getInviteLinks(Group group) throws IllegalArgumentException {
+    public Map<UUID, InviteLinkPair> getGroupInviteLinks() throws IllegalArgumentException, NoSuchElementException {
+
+        UUID currentUserId = userService.getCurrentUserId();
+        MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(currentUserId);
+
+        if (currentMentorDTO == null) {
+            log.log(Level.WARN, "Can't find Mentor by User(id=" + currentUserId + ")");
+            throw new NoSuchElementException("Can't find Mentor by User(id=" + currentUserId + ")");
+        }
+
+        Optional<Group> optionalGroup = groupService.findByMentorId(currentMentorDTO.getId());
+        if (!optionalGroup.isPresent()) {
+            String errorMessage = "Can't find group for Mentor(id=" + currentMentorDTO.getId() + ")";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        Group group = optionalGroup.get();
+        Map<UUID, InviteLinkPair> result = getGroupInviteLinks(group);
+        if (MapUtils.isNotEmpty(result)) {
+            // save after students status update
+            group = groupService.save(group);
+            log.log(Level.INFO, "Group(id=" + group.getId() + ") saved");
+        } else {
+            log.log(Level.INFO, "There are no students with updated statuses. Returning empty map");
+        }
+
+        return result;
+    }
+
+    public Map<UUID, InviteLinkPair> getGroupInviteLinks(Group group) throws IllegalArgumentException {
+
         if (group == null) {
             String errorMessage = "Group is 'null'";
             log.log(Level.WARN, errorMessage);
@@ -81,6 +116,8 @@ public class InviteService {
                             )
                     );
 
+                    log.log(Level.INFO, "Create links for Student(id=" + studentId + ")");
+
                 } catch (NoSuchAlgorithmException
                         | NoSuchPaddingException
                         | InvalidKeyException
@@ -99,23 +136,30 @@ public class InviteService {
             }
         }
 
+
         return studentIdLinks;
     }
 
     @SuppressWarnings("Duplicates")
-    public InviteLinkPair forceInviteLinks(UUID studentId, Group group)
+    public InviteLinkPair forceInviteLinks(UUID studentId)
             throws IllegalArgumentException,
             IllegalStateException,
             NoSuchElementException {
-        if (group == null) {
-            String errorMessage = "Group is 'null'";
-            log.log(Level.WARN, errorMessage);
-            throw new IllegalArgumentException(errorMessage);
-        } else if (studentId == null) {
+
+        if (studentId == null) {
             String errorMessage = "studentId is 'null'";
             log.log(Level.WARN, errorMessage);
             throw new IllegalArgumentException(errorMessage);
         }
+        Optional<Group> optionalGroup = groupService.findByStudentsIs(studentId);
+
+        if (!optionalGroup.isPresent()) {
+            String errorMessage = "Group isn't present for Student(id=" + studentId + ")";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        Group group = optionalGroup.get();
 
         StudentStatusBind student = group.getStudents().stream()
                 .filter(studentStatusBind -> studentStatusBind.getId().equals(studentId))
@@ -151,10 +195,11 @@ public class InviteService {
                             + URLEncoder.encode(encryptedRejectMessage, "UTF-8"))
             );
 
-            // you must save updated group in calling method
             if (!student.getStatus().equals(StudentStatus.INVITED)) {
                 log.log(Level.INFO, "Set Student(id=" + studentId + ") status to '" + StudentStatus.INVITED + "'");
                 student.setStatus(StudentStatus.INVITED);
+                Group updatedGroup = groupService.save(group);
+                log.log(Level.INFO, "Group(id=" + updatedGroup.getId() + ") saved");
             }
         } catch (NoSuchAlgorithmException
                 | NoSuchPaddingException
