@@ -24,6 +24,9 @@ public class Stage implements Auditable {
     private String name;
     private String description;
 
+    @Column(name = "stage_order", unique = true)
+    private Long order;
+
     @Column(columnDefinition = "timestamp with time zone")
     private OffsetDateTime deadline;
 

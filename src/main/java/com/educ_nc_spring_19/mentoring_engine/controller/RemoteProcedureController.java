@@ -95,7 +95,7 @@ public class RemoteProcedureController {
 
     @GetMapping(path = "/invite", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity processInvite(@RequestParam(value = "link") String link) {
-        log.log(Level.INFO, "link: '" + link + "'");
+        log.log(Level.INFO, "link=" + link);
 
         InviteState responseState;
         try {
@@ -117,11 +117,11 @@ public class RemoteProcedureController {
         String responseMessage;
         switch (responseState) {
             case ACCEPT:
-                log.info("InviteState is '" + responseState + "'");
+                log.log(Level.INFO, "InviteState is '" + responseState + "'");
                 responseMessage = "You have successfully accepted the invitation";
                 break;
             case REJECT:
-                log.info("InviteState is '" + responseState + "'");
+                log.log(Level.INFO, "InviteState is '" + responseState + "'");
                 responseMessage = "You have successfully rejected the invitation";
                 break;
             default:

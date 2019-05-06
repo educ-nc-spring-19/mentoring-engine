@@ -6,6 +6,9 @@ import com.educ_nc_spring_19.mentoring_engine.enums.InviteState;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
 import com.educ_nc_spring_19.mentoring_engine.util.Encryption;
 import com.educ_nc_spring_19.mentoring_engine.util.InviteLinkPair;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,6 +40,7 @@ public class InviteService {
     private static final String INVITE_PATH = "/mentoring-engine/rest/api/v1/rpc/invite?link=";
 
     private final GroupService groupService;
+    private final ObjectMapper objectMapper;
 
     @SuppressWarnings("Duplicates")
     public Map<UUID, InviteLinkPair> getInviteLinks(Group group) throws IllegalArgumentException {
@@ -60,9 +65,9 @@ public class InviteService {
 
                 try {
                     String encryptedAcceptMessage = Encryption.encrypt(ENCRYPTION_KEY,
-                            InviteService.getLinkMessage(InviteState.ACCEPT, studentId, group.getId()));
+                            this.getLinkMessage(InviteState.ACCEPT, studentId, group.getId()));
                     String encryptedRejectMessage = Encryption.encrypt(ENCRYPTION_KEY,
-                            InviteService.getLinkMessage(InviteState.REJECT, studentId, group.getId()));
+                            this.getLinkMessage(InviteState.REJECT, studentId, group.getId()));
 
                     studentIdLinks.put(
                             studentId,
@@ -82,7 +87,8 @@ public class InviteService {
                         | IllegalBlockSizeException
                         | BadPaddingException
                         | UnsupportedEncodingException
-                        | MalformedURLException e) {
+                        | MalformedURLException
+                        | JsonProcessingException e) {
                     log.log(Level.WARN, "Can't create invite links for Student(id=" + studentId
                             + ") in cause of exception: " + e.getMessage());
                     continue;
@@ -118,7 +124,7 @@ public class InviteService {
                     String errorMessage = "Can't find Student(id=" + studentId
                             + ") in Group(id=" + group.getId() + ")";
                     log.log(Level.WARN, errorMessage);
-                    throw new NoSuchElementException(errorMessage);
+                    return new NoSuchElementException(errorMessage);
                 });
 
         if (student.getStatus().equals(StudentStatus.ACCEPTED) || student.getStatus().equals(StudentStatus.EXPELLED)) {
@@ -132,9 +138,9 @@ public class InviteService {
         InviteLinkPair inviteLinkPair;
         try {
             String encryptedAcceptMessage = Encryption.encrypt(ENCRYPTION_KEY,
-                    InviteService.getLinkMessage(InviteState.ACCEPT, studentId, group.getId()));
+                    this.getLinkMessage(InviteState.ACCEPT, studentId, group.getId()));
             String encryptedRejectMessage = Encryption.encrypt(ENCRYPTION_KEY,
-                    InviteService.getLinkMessage(InviteState.REJECT, studentId, group.getId()));
+                    this.getLinkMessage(InviteState.REJECT, studentId, group.getId()));
 
             inviteLinkPair = new InviteLinkPair(
                     new URL(APP_BASE_URL
@@ -156,7 +162,8 @@ public class InviteService {
                 | IllegalBlockSizeException
                 | BadPaddingException
                 | UnsupportedEncodingException
-                | MalformedURLException e) {
+                | MalformedURLException
+                | JsonProcessingException e) {
             log.log(Level.WARN, "Can't create invite links for Student(id=" + studentId
                     + ") in cause of exception: " + e.getMessage());
             // fucking crutch, but it maybe better, than throwing new Exception(e)
@@ -166,6 +173,7 @@ public class InviteService {
         return inviteLinkPair;
     }
 
+    @SuppressWarnings("unchecked")
     public InviteState processInviteLink(String link) throws Exception {
         if (StringUtils.isBlank(link)) {
             String errorMessage = "Argument string is blank";
@@ -174,20 +182,19 @@ public class InviteService {
         }
 
         InviteState resultState;
-
         try {
             String decodedMessage = Encryption.decrypt(ENCRYPTION_KEY, link);
 
-            List<String> splittedMessage = Arrays.asList(decodedMessage.split("\\|"));
-            if (splittedMessage.size() < MESSAGE_ARGS_QUANTITY) {
-                String errorMessage = "splittedMessage args quantity less than " + MESSAGE_ARGS_QUANTITY;
+            Map<String, String> jsonMap = objectMapper.readValue(decodedMessage, Map.class);
+            if (jsonMap.size() < MESSAGE_ARGS_QUANTITY) {
+                String errorMessage = "jsonMap args quantity less than " + MESSAGE_ARGS_QUANTITY;
                 log.log(Level.WARN, errorMessage);
                 throw new IllegalArgumentException(errorMessage);
             }
 
-            InviteState state = InviteState.valueOf(splittedMessage.get(0));
-            UUID studentId = UUID.fromString(splittedMessage.get(1));
-            UUID groupId = UUID.fromString(splittedMessage.get(2));
+            InviteState state = InviteState.valueOf(jsonMap.get("state"));
+            UUID studentId = UUID.fromString(jsonMap.get("studentId"));
+            UUID groupId = UUID.fromString(jsonMap.get("groupId"));
 
             Optional<Group> optionalGroup = groupService.findById(groupId);
             if (optionalGroup.isPresent()) {
@@ -206,21 +213,24 @@ public class InviteService {
                             String errorMessage = "Student(id=" + studentId
                                     + ") doesn't belong to Group(id=" + groupId + ")";
                             log.log(Level.WARN, errorMessage);
-                            throw new NoSuchElementException(errorMessage);
+                            return new NoSuchElementException(errorMessage);
                         });
 
                 if (currentStudent.getStatus().equals(StudentStatus.EXPELLED)) {
-                    log.log(Level.WARN, "Student(id=" + studentId
-                            + ") can't do anything with the invitation in cause of his status '" + StudentStatus.EXPELLED + "'");
-                    throw new IllegalStateException("You can't do anything with the invitation");
+                    String errorMessage = "Student(id=" + studentId
+                            + ") can't do anything with the invitation in cause of his status '" + StudentStatus.EXPELLED + "'";
+                    log.log(Level.WARN, errorMessage);
+                    throw new IllegalStateException(errorMessage);
                 } else if (currentStudent.getStatus().equals(StudentStatus.ACCEPTED) && state.equals(InviteState.ACCEPT)) {
-                    log.log(Level.WARN, "Student(id=" + studentId
-                            + ") has already accepted the invitation in cause of his status '" + StudentStatus.ACCEPTED + "'");
-                    throw new IllegalStateException("You have already accepted the invitation");
+                    String errorMessage = "Student(id=" + studentId
+                            + ") has already accepted the invitation in cause of his status '" + StudentStatus.ACCEPTED + "'";
+                    log.log(Level.WARN, errorMessage);
+                    throw new IllegalStateException(errorMessage);
                 } else if (currentStudent.getStatus().equals(StudentStatus.REJECTED) && state.equals(InviteState.REJECT)) {
-                    log.log(Level.WARN, "Student(id=" + studentId
-                            + ") has already rejected the invitation in cause of his status '" + StudentStatus.REJECTED + "'");
-                    throw new IllegalStateException("You have already rejected the invitation");
+                    String errorMessage = "Student(id=" + studentId
+                            + ") has already rejected the invitation in cause of his status '" + StudentStatus.REJECTED + "'";
+                    log.log(Level.WARN, errorMessage);
+                    throw new IllegalStateException(errorMessage);
                 } else {
                     switch (state) {
                         case ACCEPT:
@@ -251,7 +261,8 @@ public class InviteService {
                 | NoSuchPaddingException
                 | InvalidKeyException
                 | IllegalBlockSizeException
-                | BadPaddingException e) {
+                | BadPaddingException
+                | IOException e) {
             String errorMessage = "Can't processing decryption of link=" + link;
             log.log(Level.WARN, errorMessage);
             throw new Exception(errorMessage, e);
@@ -259,12 +270,15 @@ public class InviteService {
         return resultState;
     }
 
-    private static String getLinkMessage(InviteState inviteState, UUID studentId, UUID groupId) {
+    private String getLinkMessage(InviteState inviteState, UUID studentId, UUID groupId) throws JsonProcessingException {
 
-        return inviteState + "|" +
-                studentId + "|" +
-                groupId + "|" +
-                OffsetDateTime.now() + "|" +
-                UUID.randomUUID();
+        ObjectNode messageNode = objectMapper.getNodeFactory().objectNode();
+        messageNode.put("state", inviteState.name());
+        messageNode.put("studentId", studentId.toString());
+        messageNode.put("groupId", groupId.toString());
+        messageNode.put("send", OffsetDateTime.now().toString());
+        messageNode.put("salt", UUID.randomUUID().toString());
+
+        return objectMapper.writeValueAsString(messageNode);
     }
 }

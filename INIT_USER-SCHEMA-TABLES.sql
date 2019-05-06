@@ -60,6 +60,7 @@ CREATE TABLE mentoring_engine.stage (
     id uuid PRIMARY KEY,
     name character varying(255) COLLATE pg_catalog."default",
     description character varying(255) COLLATE pg_catalog."default",
+    stage_order bigint UNIQUE,
     deadline timestamp with time zone,
     created_date timestamp with time zone,
     created_by_user_id uuid,
