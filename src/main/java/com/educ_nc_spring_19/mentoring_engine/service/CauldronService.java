@@ -20,9 +20,13 @@ import java.util.stream.Collectors;
 @Service
 public class CauldronService {
     private final CauldronRepository cauldronRepository;
-    private final UserService userService;
     private final MasterDataClient masterDataClient;
     private final PoolService poolService;
+    private final UserService userService;
+
+    public void deleteAll() {
+        cauldronRepository.deleteAll();
+    }
 
     public List<Cauldron> findAll() {
         List<Cauldron> cauldrons = IterableUtils.toList(cauldronRepository.findAll());
@@ -47,18 +51,6 @@ public class CauldronService {
         optionalCauldron.ifPresent(cauldron ->
                 log.log(Level.DEBUG, "Pool(id=" + cauldron.getId() + ") found by id"));
         return optionalCauldron;
-    }
-
-    public void deleteAll() {
-        cauldronRepository.deleteAll();
-    }
-
-    public List<Cauldron> saveAll(Iterable<Cauldron> cauldrons) {
-        return IterableUtils.toList(cauldronRepository.saveAll(cauldrons));
-    }
-
-    public Cauldron save(Cauldron cauldron) {
-        return cauldronRepository.save(cauldron);
     }
 
     public Optional<Cauldron> findByMentorsIsAndStudentsIs(UUID mentorId, UUID studentId) {
@@ -115,6 +107,13 @@ public class CauldronService {
         } else {
             throw new IllegalArgumentException("Cauldron for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
         }
+    }
 
+    public Cauldron save(Cauldron cauldron) {
+        return cauldronRepository.save(cauldron);
+    }
+
+    public List<Cauldron> saveAll(Iterable<Cauldron> cauldrons) {
+        return IterableUtils.toList(cauldronRepository.saveAll(cauldrons));
     }
 }

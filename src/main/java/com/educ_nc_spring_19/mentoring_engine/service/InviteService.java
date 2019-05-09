@@ -3,6 +3,7 @@ package com.educ_nc_spring_19.mentoring_engine.service;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.StudentStatusBind;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.enums.StudentStatus;
+import com.educ_nc_spring_19.mentoring_engine.client.MailingServiceClient;
 import com.educ_nc_spring_19.mentoring_engine.client.MasterDataClient;
 import com.educ_nc_spring_19.mentoring_engine.enums.InviteState;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
@@ -37,108 +38,16 @@ import java.util.*;
 @Service
 public class InviteService {
 
-    private static final Integer MESSAGE_ARGS_QUANTITY = 5;
     private static final String ENCRYPTION_KEY = "ASWz8Eie5TN3aQsrITKQo9Dv8uyjhtzl";
+    private static final Integer MESSAGE_ARGS_QUANTITY = 5;
     private static final String APP_BASE_URL = "http://localhost:55010";
     private static final String INVITE_PATH = "/mentoring-engine/rest/api/v1/rpc/invite?link=";
 
     private final GroupService groupService;
+    private final MailingServiceClient mailingServiceClient;
+    private final MasterDataClient masterDataClient;
     private final ObjectMapper objectMapper;
     private final UserService userService;
-    private final MasterDataClient masterDataClient;
-
-    public Map<UUID, InviteLinkPair> getGroupInviteLinks() throws IllegalArgumentException, NoSuchElementException {
-
-        UUID currentUserId = userService.getCurrentUserId();
-        MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(currentUserId);
-
-        if (currentMentorDTO == null) {
-            log.log(Level.WARN, "Can't find Mentor by User(id=" + currentUserId + ")");
-            throw new NoSuchElementException("Can't find Mentor by User(id=" + currentUserId + ")");
-        }
-
-        Optional<Group> optionalGroup = groupService.findByMentorId(currentMentorDTO.getId());
-        if (!optionalGroup.isPresent()) {
-            String errorMessage = "Can't find group for Mentor(id=" + currentMentorDTO.getId() + ")";
-            log.log(Level.WARN, errorMessage);
-            throw new IllegalArgumentException(errorMessage);
-        }
-
-        Group group = optionalGroup.get();
-        Map<UUID, InviteLinkPair> result = getGroupInviteLinks(group);
-        if (MapUtils.isNotEmpty(result)) {
-            // save after students status update
-            group = groupService.save(group);
-            log.log(Level.INFO, "Group(id=" + group.getId() + ") saved");
-        } else {
-            log.log(Level.INFO, "There are no students with updated statuses. Returning empty map");
-        }
-
-        return result;
-    }
-
-    public Map<UUID, InviteLinkPair> getGroupInviteLinks(Group group) throws IllegalArgumentException {
-
-        if (group == null) {
-            String errorMessage = "Group is 'null'";
-            log.log(Level.WARN, errorMessage);
-            throw new IllegalArgumentException(errorMessage);
-        }
-
-        List<StudentStatusBind> students = group.getStudents();
-        if (CollectionUtils.isEmpty(students)) {
-            String errorMessage = "Group(id=" + group.getId() + ") students is empty";
-            log.log(Level.WARN, errorMessage);
-            throw new IllegalArgumentException(errorMessage);
-        }
-
-        Map<UUID, InviteLinkPair> studentIdLinks = new HashMap<>(students.size());
-
-        for (StudentStatusBind student : students) {
-            if (student.getStatus().equals(StudentStatus.SELECTED)) {
-                UUID studentId = student.getId();
-
-                try {
-                    String encryptedAcceptMessage = Encryption.encrypt(ENCRYPTION_KEY,
-                            this.getLinkMessage(InviteState.ACCEPT, studentId, group.getId()));
-                    String encryptedRejectMessage = Encryption.encrypt(ENCRYPTION_KEY,
-                            this.getLinkMessage(InviteState.REJECT, studentId, group.getId()));
-
-                    studentIdLinks.put(
-                            studentId,
-                            new InviteLinkPair(
-                                    new URL(APP_BASE_URL
-                                            + INVITE_PATH
-                                            + URLEncoder.encode(encryptedAcceptMessage, "UTF-8")),
-                                    new URL(APP_BASE_URL
-                                            + INVITE_PATH
-                                            + URLEncoder.encode(encryptedRejectMessage, "UTF-8"))
-                            )
-                    );
-
-                    log.log(Level.INFO, "Create links for Student(id=" + studentId + ")");
-
-                } catch (NoSuchAlgorithmException
-                        | NoSuchPaddingException
-                        | InvalidKeyException
-                        | IllegalBlockSizeException
-                        | BadPaddingException
-                        | UnsupportedEncodingException
-                        | MalformedURLException
-                        | JsonProcessingException e) {
-                    log.log(Level.WARN, "Can't create invite links for Student(id=" + studentId
-                            + ") in cause of exception: " + e.getMessage());
-                    continue;
-                }
-
-                student.setStatus(StudentStatus.INVITED);
-                log.log(Level.INFO, "Set Student(id=" + studentId + ") status to '" + StudentStatus.INVITED + "'");
-            }
-        }
-
-
-        return studentIdLinks;
-    }
 
     @SuppressWarnings("Duplicates")
     public InviteLinkPair forceInviteLinks(UUID studentId)
@@ -216,6 +125,111 @@ public class InviteService {
         }
 
         return inviteLinkPair;
+    }
+
+    public Map<UUID, InviteLinkPair> getGroupInviteLinks() throws IllegalArgumentException, NoSuchElementException {
+
+        UUID currentUserId = userService.getCurrentUserId();
+        MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(currentUserId);
+
+        if (currentMentorDTO == null) {
+            log.log(Level.WARN, "Can't find Mentor by User(id=" + currentUserId + ")");
+            throw new NoSuchElementException("Can't find Mentor by User(id=" + currentUserId + ")");
+        }
+
+        Optional<Group> optionalGroup = groupService.findByMentorId(currentMentorDTO.getId());
+        if (!optionalGroup.isPresent()) {
+            String errorMessage = "Can't find group for Mentor(id=" + currentMentorDTO.getId() + ")";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        Group group = optionalGroup.get();
+        Map<UUID, InviteLinkPair> result = getGroupInviteLinks(group);
+        if (MapUtils.isNotEmpty(result)) {
+            // save after students status update
+            group = groupService.save(group);
+            log.log(Level.INFO, "Group(id=" + group.getId() + ") saved");
+        } else {
+            log.log(Level.INFO, "There are no students with updated statuses. Returning empty map");
+        }
+
+        return result;
+    }
+
+    public Map<UUID, InviteLinkPair> getGroupInviteLinks(Group group) throws IllegalArgumentException {
+
+        if (group == null) {
+            String errorMessage = "Group is 'null'";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        List<StudentStatusBind> students = group.getStudents();
+        if (CollectionUtils.isEmpty(students)) {
+            String errorMessage = "Group(id=" + group.getId() + ") students is empty";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        Map<UUID, InviteLinkPair> studentIdLinks = new HashMap<>(students.size());
+
+        for (StudentStatusBind student : students) {
+            if (student.getStatus().equals(StudentStatus.SELECTED)) {
+                UUID studentId = student.getId();
+
+                try {
+                    String encryptedAcceptMessage = Encryption.encrypt(ENCRYPTION_KEY,
+                            this.getLinkMessage(InviteState.ACCEPT, studentId, group.getId()));
+                    String encryptedRejectMessage = Encryption.encrypt(ENCRYPTION_KEY,
+                            this.getLinkMessage(InviteState.REJECT, studentId, group.getId()));
+
+                    InviteLinkPair inviteLinkPair = new InviteLinkPair(
+                            new URL(APP_BASE_URL
+                                    + INVITE_PATH
+                                    + URLEncoder.encode(encryptedAcceptMessage, "UTF-8")),
+                            new URL(APP_BASE_URL
+                                    + INVITE_PATH
+                                    + URLEncoder.encode(encryptedRejectMessage, "UTF-8"))
+                    );
+
+                    studentIdLinks.put(studentId, inviteLinkPair);
+
+                    mailingServiceClient.sendInviteEmail(studentId, group.getMentorId(), group.getBackupId(), inviteLinkPair);
+
+                    log.log(Level.INFO, "Create links for Student(id=" + studentId + ")");
+
+                } catch (NoSuchAlgorithmException
+                        | NoSuchPaddingException
+                        | InvalidKeyException
+                        | IllegalBlockSizeException
+                        | BadPaddingException
+                        | UnsupportedEncodingException
+                        | MalformedURLException
+                        | JsonProcessingException e) {
+                    log.log(Level.WARN, "Can't create invite links for Student(id=" + studentId
+                            + ") in cause of exception: " + e.getMessage());
+                    continue;
+                }
+
+                student.setStatus(StudentStatus.INVITED);
+                log.log(Level.INFO, "Set Student(id=" + studentId + ") status to '" + StudentStatus.INVITED + "'");
+            }
+        }
+
+        return studentIdLinks;
+    }
+
+    private String getLinkMessage(InviteState inviteState, UUID studentId, UUID groupId) throws JsonProcessingException {
+
+        ObjectNode messageNode = objectMapper.getNodeFactory().objectNode();
+        messageNode.put("state", inviteState.name());
+        messageNode.put("studentId", studentId.toString());
+        messageNode.put("groupId", groupId.toString());
+        messageNode.put("send", OffsetDateTime.now().toString());
+        messageNode.put("salt", UUID.randomUUID().toString());
+
+        return objectMapper.writeValueAsString(messageNode);
     }
 
     @SuppressWarnings("unchecked")
@@ -313,17 +327,5 @@ public class InviteService {
             throw new Exception(errorMessage, e);
         }
         return resultState;
-    }
-
-    private String getLinkMessage(InviteState inviteState, UUID studentId, UUID groupId) throws JsonProcessingException {
-
-        ObjectNode messageNode = objectMapper.getNodeFactory().objectNode();
-        messageNode.put("state", inviteState.name());
-        messageNode.put("studentId", studentId.toString());
-        messageNode.put("groupId", groupId.toString());
-        messageNode.put("send", OffsetDateTime.now().toString());
-        messageNode.put("salt", UUID.randomUUID().toString());
-
-        return objectMapper.writeValueAsString(messageNode);
     }
 }

@@ -22,8 +22,8 @@ import java.util.*;
 @RestController
 @RequestMapping("/mentoring-engine/rest/api/v1/cauldron")
 public class CauldronController {
-    private final CauldronService cauldronService;
     private final CauldronMapper cauldronMapper;
+    private final CauldronService cauldronService;
     private final ObjectMapper objectMapper;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)

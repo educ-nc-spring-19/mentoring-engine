@@ -8,7 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface PoolMapper {
+    Pool toPool(PoolDTO poolDTO);
     PoolDTO toPoolDTO(Pool pool);
     List<PoolDTO> toPoolsDTO(List<Pool> pools);
-    Pool toPool(PoolDTO poolDTO);
 }

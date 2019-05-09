@@ -24,164 +24,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class GroupService {
+
+    private final CauldronService cauldronService;
     private final GroupRepository groupRepository;
-    private final StageService stageService;
     private final MasterDataClient masterDataClient;
     private final PoolService poolService;
-    private final CauldronService cauldronService;
+    private final StageService stageService;
     private final UserService userService;
 
     private static final Long DISTRIBUTION_STAGE_ORDER = 1L;
     private static final Long FIRST_MEETING_STAGE_ORDER = 2L;
-
-    public Optional<Group> findByMentorId(UUID mentorId) {
-        Optional<Group> optionalGroup = groupRepository.findByMentorId(mentorId);
-        optionalGroup.ifPresent(group ->
-                log.log(Level.DEBUG,"Group(id=" + group.getId() + ") found by Mentor(id=" + mentorId + ")"));
-        return optionalGroup;
-    }
-
-    public Optional<Group> findByStudentsIs(UUID studentId) {
-        Optional<Group> optionalGroup = groupRepository.findByStudentsIs(studentId);
-        optionalGroup.ifPresent(group ->
-                log.log(Level.DEBUG,"Group(id=" + group.getId() + ") found by Student(id=" + studentId + ")"));
-        return optionalGroup;
-    }
-
-    public Optional<Group> findById(UUID id) {
-        Optional<Group> optionalGroup = groupRepository.findById(id);
-        optionalGroup.ifPresent(group ->
-                log.log(Level.DEBUG, "Group(id=" + group.getId() + ") found by id"));
-        return optionalGroup;
-    }
-
-    public List<Group> findAll() {
-        List<Group> groups = IterableUtils.toList(groupRepository.findAll());
-
-        log.log(Level.DEBUG,
-                "Groups found by findAll(): " + groups.stream().map(Group::getId).collect(Collectors.toList()));
-        return groups;
-    }
-
-    public List<Group> findAllById(Iterable<UUID> ids) {
-        List<Group> groups = IterableUtils.toList(groupRepository.findAllById(ids));
-
-        log.log(Level.DEBUG,
-                "Groups found by findAllById(): " + groups.stream().map(Group::getId).collect(Collectors.toList()));
-        return groups;
-    }
-
-    public List<Group> findAllByStageId(UUID stageId) {
-        List<Group> groups = IterableUtils.toList(groupRepository.findAllByStageId(stageId));
-
-        log.log(Level.DEBUG,
-                "Groups found by findAllById(): " + groups.stream().map(Group::getId).collect(Collectors.toList()));
-        return groups;
-    }
-
-    public Group create(String name) throws IllegalArgumentException, NoSuchElementException {
-        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
-        UUID mentorId = currentMentorDTO.getId();
-
-        Optional<Group> optionalGroup = findByMentorId(mentorId);
-        if (optionalGroup.isPresent()) {
-            throw new IllegalArgumentException("Mentor(id=" + mentorId
-                    + ") already own Group(id=" + optionalGroup.get().getId() + ")");
-        }
-
-        Group group = new Group();
-        group.setName(name);
-        group.setMentorId(mentorId);
-
-//        Optional<Stage> stage = stageService.findById(DISTRIBUTION_STAGE_ID);
-        Optional<Stage> stage = stageService.findByOrder(DISTRIBUTION_STAGE_ORDER);
-        if (stage.isPresent()) {
-            group.setStage(stage.get());
-            group.setStageId(stage.get().getId());
-        } else {
-            throw new IllegalArgumentException("Can't create new group cause illegal value in 'DISTRIBUTION_STAGE_ORDER': '"
-                    + DISTRIBUTION_STAGE_ORDER.toString() + "'");
-        }
-
-        group = groupRepository.save(group);
-        log.log(Level.INFO, "Group(id=" + group.getId() + ") created for Mentor(id=" + mentorId + ")");
-        return group;
-    }
-
-    public void deleteById(UUID id) throws NoSuchElementException {
-        Optional<Group> optionalGroup = groupRepository.findById(id);
-        if (!optionalGroup.isPresent()) {
-            throw new NoSuchElementException("Group(id=" + id + ") doesn't exist");
-        }
-
-        MentorDTO mentorDTO = this.getCurrentMentorDTO();
-        Group group = optionalGroup.get();
-        if (mentorDTO.getDirectionId() == null) {
-            throw new NoSuchElementException("Mentor(id=" + mentorDTO.getId() + ") direction is 'null'");
-        } else if (CollectionUtils.isNotEmpty(group.getStudents())) {
-            Optional<Pool> optionalPool = poolService.findByDirectionId(mentorDTO.getDirectionId());
-            if (optionalPool.isPresent()) {
-                Pool pool = optionalPool.get();
-
-                Set<UUID> studentIdsToAdd = group.getStudents().stream()
-                        .map(StudentStatusBind::getId)
-                        .collect(Collectors.toSet());
-
-                pool.getStudents().addAll(studentIdsToAdd);
-                pool = poolService.save(pool);
-
-                log.log(Level.INFO, "Pool(id=" + pool.getId() + ") updated with Students: " + studentIdsToAdd);
-            } else {
-                throw new NoSuchElementException("Pool for Direction(id=" + mentorDTO.getDirectionId() + ") is absent");
-            }
-        }
-
-        groupRepository.delete(group);
-        log.log(Level.INFO, "Group(id=" + id + ") deleted");
-    }
-
-    public void deleteAll() {
-        groupRepository.deleteAll();
-        log.log(Level.INFO, "All Groups deleted");
-    }
-
-    private MentorDTO getCurrentMentorDTO() throws NoSuchElementException {
-        UUID currentUserId = userService.getCurrentUserId();
-        MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(currentUserId);
-
-        if (currentMentorDTO == null) {
-            log.log(Level.WARN, "Can't find Mentor by User(id=" + currentUserId + ")");
-            throw new NoSuchElementException("Can't find Mentor by User(id=" + currentUserId + ")");
-        }
-
-        return currentMentorDTO;
-    }
-
-    // TO DO (??): Check in Master Data for backup existence
-    public Group setBackupId(UUID backupId) throws IllegalArgumentException, NoSuchElementException {
-        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
-        // find Group for current mentor
-        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
-
-        if (optionalGroup.isPresent()) {
-            Group group = optionalGroup.get();
-            group.setBackupId(backupId);
-            group = groupRepository.save(group);
-
-            log.log(Level.INFO, "Mentor(id=" + backupId + ") was set as backup for Group(id=" + group.getId() + ")");
-            return group;
-        } else {
-            throw new IllegalArgumentException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
-        }
-    }
-
-    public List<Group> saveAll(Iterable<Group> groups) {
-        return IterableUtils.toList(groupRepository.saveAll(groups));
-    }
-
-    public Group save(Group group) {
-        return groupRepository.save(group);
-    }
 
     public Group addStudentId(UUID studentId) throws IllegalArgumentException, NoSuchElementException {
         // get current mentor
@@ -236,6 +88,128 @@ public class GroupService {
         }
     }
 
+    public Group create(String name) throws IllegalArgumentException, NoSuchElementException {
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
+        UUID mentorId = currentMentorDTO.getId();
+
+        Optional<Group> optionalGroup = findByMentorId(mentorId);
+        if (optionalGroup.isPresent()) {
+            throw new IllegalArgumentException("Mentor(id=" + mentorId
+                    + ") already own Group(id=" + optionalGroup.get().getId() + ")");
+        }
+
+        Group group = new Group();
+        group.setName(name);
+        group.setMentorId(mentorId);
+
+        Optional<Stage> stage = stageService.findByOrder(DISTRIBUTION_STAGE_ORDER);
+        if (stage.isPresent()) {
+            group.setStage(stage.get());
+            group.setStageId(stage.get().getId());
+        } else {
+            throw new IllegalArgumentException("Can't create new group cause illegal value in 'DISTRIBUTION_STAGE_ORDER': '"
+                    + DISTRIBUTION_STAGE_ORDER.toString() + "'");
+        }
+
+        group = groupRepository.save(group);
+        log.log(Level.INFO, "Group(id=" + group.getId() + ") created for Mentor(id=" + mentorId + ")");
+        return group;
+    }
+
+    public void deleteAll() {
+        groupRepository.deleteAll();
+        log.log(Level.INFO, "All Groups deleted");
+    }
+
+    public void deleteById(UUID id) throws NoSuchElementException {
+        Optional<Group> optionalGroup = groupRepository.findById(id);
+        if (!optionalGroup.isPresent()) {
+            throw new NoSuchElementException("Group(id=" + id + ") doesn't exist");
+        }
+
+        MentorDTO mentorDTO = this.getCurrentMentorDTO();
+        Group group = optionalGroup.get();
+        if (mentorDTO.getDirectionId() == null) {
+            throw new NoSuchElementException("Mentor(id=" + mentorDTO.getId() + ") direction is 'null'");
+        } else if (CollectionUtils.isNotEmpty(group.getStudents())) {
+            Optional<Pool> optionalPool = poolService.findByDirectionId(mentorDTO.getDirectionId());
+            if (optionalPool.isPresent()) {
+                Pool pool = optionalPool.get();
+
+                Set<UUID> studentIdsToAdd = group.getStudents().stream()
+                        .map(StudentStatusBind::getId)
+                        .collect(Collectors.toSet());
+
+                pool.getStudents().addAll(studentIdsToAdd);
+                pool = poolService.save(pool);
+
+                log.log(Level.INFO, "Pool(id=" + pool.getId() + ") updated with Students: " + studentIdsToAdd);
+            } else {
+                throw new NoSuchElementException("Pool for Direction(id=" + mentorDTO.getDirectionId() + ") is absent");
+            }
+        }
+
+        groupRepository.delete(group);
+        log.log(Level.INFO, "Group(id=" + id + ") deleted");
+    }
+
+    public List<Group> findAll() {
+        List<Group> groups = IterableUtils.toList(groupRepository.findAll());
+
+        log.log(Level.DEBUG,
+                "Groups found by findAll(): " + groups.stream().map(Group::getId).collect(Collectors.toList()));
+        return groups;
+    }
+
+    public List<Group> findAllById(Iterable<UUID> ids) {
+        List<Group> groups = IterableUtils.toList(groupRepository.findAllById(ids));
+
+        log.log(Level.DEBUG,
+                "Groups found by findAllById(): " + groups.stream().map(Group::getId).collect(Collectors.toList()));
+        return groups;
+    }
+
+    public List<Group> findAllByStageId(UUID stageId) {
+        List<Group> groups = IterableUtils.toList(groupRepository.findAllByStageId(stageId));
+
+        log.log(Level.DEBUG,
+                "Groups found by findAllById(): " + groups.stream().map(Group::getId).collect(Collectors.toList()));
+        return groups;
+    }
+
+    public Optional<Group> findById(UUID id) {
+        Optional<Group> optionalGroup = groupRepository.findById(id);
+        optionalGroup.ifPresent(group ->
+                log.log(Level.DEBUG, "Group(id=" + group.getId() + ") found by id"));
+        return optionalGroup;
+    }
+
+    public Optional<Group> findByMentorId(UUID mentorId) {
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(mentorId);
+        optionalGroup.ifPresent(group ->
+                log.log(Level.DEBUG,"Group(id=" + group.getId() + ") found by Mentor(id=" + mentorId + ")"));
+        return optionalGroup;
+    }
+
+    public Optional<Group> findByStudentsIs(UUID studentId) {
+        Optional<Group> optionalGroup = groupRepository.findByStudentsIs(studentId);
+        optionalGroup.ifPresent(group ->
+                log.log(Level.DEBUG,"Group(id=" + group.getId() + ") found by Student(id=" + studentId + ")"));
+        return optionalGroup;
+    }
+
+    private MentorDTO getCurrentMentorDTO() throws NoSuchElementException {
+        UUID currentUserId = userService.getCurrentUserId();
+        MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(currentUserId);
+
+        if (currentMentorDTO == null) {
+            log.log(Level.WARN, "Can't find Mentor by User(id=" + currentUserId + ")");
+            throw new NoSuchElementException("Can't find Mentor by User(id=" + currentUserId + ")");
+        }
+
+        return currentMentorDTO;
+    }
+
     public Group removeStudentId(UUID studentId) throws IllegalArgumentException, NoSuchElementException {
         // get current mentor
         MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
@@ -248,7 +222,7 @@ public class GroupService {
             List<StudentStatusBind> studentStatusBinds = group.getStudents();
             if (CollectionUtils.isEmpty(studentStatusBinds)
                     || studentStatusBinds.stream().map(StudentStatusBind::getId)
-                            .noneMatch(id -> id.equals(studentId))) {
+                    .noneMatch(id -> id.equals(studentId))) {
                 throw new IllegalArgumentException("Student(id=" + studentId
                         + ") is absent in Group(id=" + group.getId() + ")");
             }
@@ -289,6 +263,32 @@ public class GroupService {
             return group;
         } else {
             throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId().toString() + ") doesn't exist");
+        }
+    }
+
+    public Group save(Group group) {
+        return groupRepository.save(group);
+    }
+
+    public List<Group> saveAll(Iterable<Group> groups) {
+        return IterableUtils.toList(groupRepository.saveAll(groups));
+    }
+
+    // TO DO (??): Check in Master Data for backup existence
+    public Group setBackupId(UUID backupId) throws IllegalArgumentException, NoSuchElementException {
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
+        // find Group for current mentor
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
+
+        if (optionalGroup.isPresent()) {
+            Group group = optionalGroup.get();
+            group.setBackupId(backupId);
+            group = groupRepository.save(group);
+
+            log.log(Level.INFO, "Mentor(id=" + backupId + ") was set as backup for Group(id=" + group.getId() + ")");
+            return group;
+        } else {
+            throw new IllegalArgumentException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
         }
     }
 

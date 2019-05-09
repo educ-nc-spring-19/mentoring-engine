@@ -10,6 +10,6 @@ import java.net.URL;
 @EqualsAndHashCode
 @Getter
 public class InviteLinkPair {
-    URL acceptLink;
-    URL declineLink;
+    private URL acceptLink;
+    private URL rejectLink;
 }

@@ -30,8 +30,8 @@ public class BackupController {
 
     private final BackupService backupService;
     private final MasterDataClient masterDataClient;
-    private final UserService userService;
     private final ObjectMapper objectMapper;
+    private final UserService userService;
 
     @GetMapping(path = "/dropdown", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity findVacantBackups() {

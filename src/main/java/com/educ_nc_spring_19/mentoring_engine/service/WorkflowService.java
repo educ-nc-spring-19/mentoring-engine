@@ -8,12 +8,9 @@ import com.educ_nc_spring_19.mentoring_engine.model.entity.Cauldron;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Pool;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Stage;
-import com.educ_nc_spring_19.mentoring_engine.util.InviteLinkPair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.logging.log4j.Level;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +22,9 @@ import java.util.stream.Collectors;
 @Service
 public class WorkflowService {
 
-    private final MasterDataClient masterDataClient;
-
     private final CauldronService cauldronService;
     private final GroupService groupService;
-    private final InviteService inviteService;
+    private final MasterDataClient masterDataClient;
     private final PoolService poolService;
     private final StageService stageService;
 
@@ -138,34 +133,4 @@ public class WorkflowService {
 
         return result;
     }
-
-    // TO DO: REFACTOR
-    /*
-    public MultiValuedMap<String, Object> setFirstMeetingGroupStageAndGetInviteLinksBulk() throws IllegalArgumentException {
-
-        List<Group> groups = groupService.setFirstMeetingStageBulk();
-        if (CollectionUtils.isNotEmpty(groups)) {
-            MultiValuedMap<String, Object> result = new ArrayListValuedHashMap<>(groups.size());
-            List<Map<UUID, InviteLinkPair>> groupsStudentIdLinks = new LinkedList<>();
-
-            groups.forEach(group -> groupsStudentIdLinks.add(inviteService.getGroupInviteLinks(group)));
-
-            // save all groups after student status update !! REFACTOR
-            groups = groupService.saveAll(groups);
-
-            // delete all pools
-            poolService.deleteAll();
-            log.log(Level.INFO, "All pools deleted");
-
-            result.put("groups", groups);
-            result.put("links", groupsStudentIdLinks);
-            result.put("pools", Collections.emptyList());
-
-            return result;
-        } else {
-            log.log(Level.WARN, "groups is empty");
-            return new ArrayListValuedHashMap<>();
-        }
-    }
-    */
 }

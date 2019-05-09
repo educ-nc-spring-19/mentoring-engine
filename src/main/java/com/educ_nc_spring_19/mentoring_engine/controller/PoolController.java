@@ -19,9 +19,9 @@ import java.util.*;
 @RestController
 @RequestMapping("/mentoring-engine/rest/api/v1/pool")
 public class PoolController {
-    private final PoolService poolService;
-    private final PoolMapper poolMapper;
     private final ObjectMapper objectMapper;
+    private final PoolMapper poolMapper;
+    private final PoolService poolService;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity find(@RequestParam(value = "id", required = false) List<UUID> ids) {

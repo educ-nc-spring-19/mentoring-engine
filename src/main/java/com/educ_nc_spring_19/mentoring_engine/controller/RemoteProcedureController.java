@@ -38,63 +38,6 @@ public class RemoteProcedureController {
     private final ObjectMapper objectMapper;
     private final PoolMapper poolMapper;
 
-    @SuppressWarnings("unchecked")
-    @PostMapping(path = "/workflow-init", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity workflowInit() {
-        Map<String, List<?>> resultOfInit = workflowService.init();
-        if (MapUtils.isEmpty(resultOfInit)) {
-            log.log(Level.WARN, "result of workflow init is empty");
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-
-        Map<String, List<?>> response = new HashMap<>();
-
-        // Unchecked casts, but we trust to map keys returned from WorkflowService
-        if (CollectionUtils.isNotEmpty(resultOfInit.get("pools"))) {
-            response.put("pools", poolMapper.toPoolsDTO((List<Pool>) resultOfInit.get("pools")));
-        }
-
-        if (CollectionUtils.isNotEmpty(resultOfInit.get("cauldrons"))) {
-            response.put("cauldrons", cauldronMapper.toCauldronsDTO((List<Cauldron>) resultOfInit.get("cauldrons")));
-        }
-
-        if (CollectionUtils.isNotEmpty(resultOfInit.get("groups"))) {
-            response.put("groups", groupMapper.toGroupsDTO((List<Group>) resultOfInit.get("groups")));
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-/*
-    @SuppressWarnings("unchecked")
-    @GetMapping(path = "/first-meeting", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity setGroupFirstMeeting() {
-
-        Map<String, Object> response = new LinkedHashMap<>();
-        try {
-            Map<String, Object> resultOfStageChange = workflowService.setFirstMeetingGroupStageAndGetInviteLinks();
-
-            if (resultOfStageChange.get("group") != null) {
-                response.put("group", groupMapper.toGroupDTO((Group) resultOfStageChange.get("group")));
-            }
-
-            if (MapUtils.isNotEmpty((Map<UUID, InviteLinkPair>) resultOfStageChange.get("links"))) {
-                response.put("links", resultOfStageChange.get("links"));
-            }
-
-        } catch (IllegalArgumentException iAE) {
-            log.log(Level.WARN, iAE);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
-        } catch (IllegalStateException iSE) {
-            log.log(Level.WARN, iSE);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(iSE);
-        } catch (NoSuchElementException nSEE) {
-            log.log(Level.WARN, nSEE);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-*/
     @GetMapping(path = "/get-invites")
     public ResponseEntity getGroupInviteLinks() {
         Map<UUID, InviteLinkPair> studentIdLinks;
@@ -120,7 +63,7 @@ public class RemoteProcedureController {
 
             ObjectNode linksNode = objectMapper.createObjectNode();
             linksNode.put("accept", linkPair.getAcceptLink().toString());
-            linksNode.put("decline", linkPair.getDeclineLink().toString());
+            linksNode.put("decline", linkPair.getRejectLink().toString());
 
             studentNode.set("links", linksNode);
             responseNode.add(studentNode);
@@ -169,5 +112,32 @@ public class RemoteProcedureController {
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(objectMapper.createObjectNode().put("message", responseMessage));
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping(path = "/workflow-init", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity workflowInit() {
+        Map<String, List<?>> resultOfInit = workflowService.init();
+        if (MapUtils.isEmpty(resultOfInit)) {
+            log.log(Level.WARN, "result of workflow init is empty");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+
+        Map<String, List<?>> response = new HashMap<>();
+
+        // Unchecked casts, but we trust to map keys returned from WorkflowService
+        if (CollectionUtils.isNotEmpty(resultOfInit.get("pools"))) {
+            response.put("pools", poolMapper.toPoolsDTO((List<Pool>) resultOfInit.get("pools")));
+        }
+
+        if (CollectionUtils.isNotEmpty(resultOfInit.get("cauldrons"))) {
+            response.put("cauldrons", cauldronMapper.toCauldronsDTO((List<Cauldron>) resultOfInit.get("cauldrons")));
+        }
+
+        if (CollectionUtils.isNotEmpty(resultOfInit.get("groups"))) {
+            response.put("groups", groupMapper.toGroupsDTO((List<Group>) resultOfInit.get("groups")));
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

@@ -19,6 +19,11 @@ import java.util.stream.Collectors;
 public class PoolService {
     private final PoolRepository poolRepository;
 
+    public void deleteAll() {
+        poolRepository.deleteAll();
+        log.log(Level.INFO, "All Pools deleted");
+    }
+
     public List<Pool> findAll() {
         List<Pool> pools = IterableUtils.toList(poolRepository.findAll());
 
@@ -35,26 +40,6 @@ public class PoolService {
         return pools;
     }
 
-    public Optional<Pool> findById(UUID id) {
-        Optional<Pool> optionalPool = poolRepository.findById(id);
-        optionalPool.ifPresent(pool ->
-                log.log(Level.DEBUG, "Pool(id=" + pool.getId() + ") found by id"));
-        return optionalPool;
-    }
-
-    public void deleteAll() {
-        poolRepository.deleteAll();
-        log.log(Level.INFO, "All Pools deleted");
-    }
-
-    public List<Pool> saveAll(Iterable<Pool> pools) {
-        return IterableUtils.toList(poolRepository.saveAll(pools));
-    }
-
-    public Pool save(Pool pool) {
-        return poolRepository.save(pool);
-    }
-
     public Optional<Pool> findByDirectionId(UUID directionId) {
         Optional<Pool> optionalPool = poolRepository.findByDirectionId(directionId);
         optionalPool.ifPresent(pool ->
@@ -68,5 +53,20 @@ public class PoolService {
                 log.log(Level.DEBUG,"Pool(id=" + pool.getId() + ") found by Direction(id=" + directionId
                         + ") and Student(id=" + studentId + ")"));
         return optionalPool;
+    }
+
+    public Optional<Pool> findById(UUID id) {
+        Optional<Pool> optionalPool = poolRepository.findById(id);
+        optionalPool.ifPresent(pool ->
+                log.log(Level.DEBUG, "Pool(id=" + pool.getId() + ") found by id"));
+        return optionalPool;
+    }
+
+    public Pool save(Pool pool) {
+        return poolRepository.save(pool);
+    }
+
+    public List<Pool> saveAll(Iterable<Pool> pools) {
+        return IterableUtils.toList(poolRepository.saveAll(pools));
     }
 }

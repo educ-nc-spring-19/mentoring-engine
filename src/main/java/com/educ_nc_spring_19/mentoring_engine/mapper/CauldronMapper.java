@@ -8,7 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface CauldronMapper {
+    Cauldron toCauldron(CauldronDTO cauldronDTO);
     CauldronDTO toCauldronDTO(Cauldron cauldron);
     List<CauldronDTO> toCauldronsDTO(List<Cauldron> cauldrons);
-    Cauldron toCauldron(CauldronDTO cauldronDTO);
 }
