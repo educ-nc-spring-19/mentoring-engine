@@ -8,7 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface GroupMapper {
+    Group toGroup(GroupDTO groupDTO);
     GroupDTO toGroupDTO(Group group);
     List<GroupDTO> toGroupsDTO(List<Group> groups);
-    Group toGroup(GroupDTO groupDTO);
 }

@@ -1,5 +1,6 @@
 package com.educ_nc_spring_19.mentoring_engine.client;
 
+import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.DirectionDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
 import lombok.extern.log4j.Log4j2;
@@ -30,37 +31,108 @@ public class MasterDataClient {
         restTemplate = restTemplateBuilder.build();
     }
 
-    public MentorDTO getMentorByUserId(UUID mentorUserId) {
+    public List<DirectionDTO> getAllDirections() {
+        ResponseEntity<List<DirectionDTO>> response = restTemplate.exchange(
+                UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
+                        .path("/master-data/rest/api/v1/direction")
+                        .build().toUri(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<DirectionDTO>>(){});
+
+        log.log(Level.INFO, "getAllDirections, response status = " + response.getStatusCode().toString());
+
+        if (response.getStatusCode().equals(HttpStatus.OK)) {
+            return response.getBody();
+        }
+        return Collections.emptyList();
+    }
+
+    public List<MentorDTO> getAllMentors() {
         ResponseEntity<List<MentorDTO>> response = restTemplate.exchange(
                 UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
                         .path("/master-data/rest/api/v1/mentor")
-                        .query("{userId}")
-                        .buildAndExpand(mentorUserId.toString()).toUri(),
+                        .build().toUri(),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<MentorDTO>>(){});
 
+        log.log(Level.INFO, "getAllMentors, response status = " + response.getStatusCode().toString());
 
+        if (response.getStatusCode().equals(HttpStatus.OK)) {
+            return response.getBody();
+        }
+        return Collections.emptyList();
+    }
+
+    public List<StudentDTO> getAllStudents() {
+        ResponseEntity<List<StudentDTO>> response = restTemplate.exchange(
+                UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
+                        .path("/master-data/rest/api/v1/student")
+                        .build().toUri(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<StudentDTO>>(){});
+
+        log.log(Level.INFO, "getAllStudents, response status = " + response.getStatusCode().toString());
+
+        if (response.getStatusCode().equals(HttpStatus.OK)) {
+            return response.getBody();
+        }
+        return Collections.emptyList();
+    }
+
+    public DirectionDTO getDirectionById(UUID directionId) {
+        ResponseEntity<DirectionDTO> response = restTemplate.getForEntity(
+                UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
+                        .path("/master-data/rest/api/v1/direction/{id}")
+                        .buildAndExpand(directionId.toString()).toUri(),
+                DirectionDTO.class
+        );
+
+        if (response.getStatusCode().equals(HttpStatus.OK)) {
+            return response.getBody();
+        }
+        log.log(Level.WARN, "directionId: \'" + directionId.toString()
+                + "\', statusCode: \'" + response.getStatusCode().toString() + "\'");
+        return null;
+    }
+
+    public MentorDTO getMentorByUserId(UUID userId) {
+        if (userId == null) {
+            log.log(Level.WARN, "userId is null");
+            return null;
+        }
+
+        ResponseEntity<List<MentorDTO>> response = restTemplate.exchange(
+                UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
+                        .path("/master-data/rest/api/v1/mentor")
+                        .queryParam("userId",userId.toString())
+                        .build().toUri(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<MentorDTO>>(){});
 
         log.log(Level.INFO, "getMentorByUserId, response status = " + response.getStatusCode().toString());
-        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null && !response.getBody().isEmpty()) {
+        if (response.getStatusCode().equals(HttpStatus.OK) && CollectionUtils.isNotEmpty(response.getBody())) {
+            log.log(Level.INFO, "Mentors: " + response.getBody().stream().map(MentorDTO::getId).collect(Collectors.toList()));
             return response.getBody().get(0);
         }
 
         return null;
     }
 
-    public List<MentorDTO> getMentorsByDirectoryId(UUID directoryId) {
-        if (directoryId == null) {
-            log.log(Level.WARN, "directoryId is null");
+    public List<MentorDTO> getMentorsByDirectionId(UUID directionId) {
+        if (directionId == null) {
+            log.log(Level.WARN, "directionId is null");
             return Collections.emptyList();
         }
 
         ResponseEntity<List<MentorDTO>> response = restTemplate.exchange(
                 UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
-                            .path("/master-data/rest/api/v1/mentor")
-                            .queryParam("{directoryId}", directoryId.toString())
-                            .build().toUri(),
+                        .path("/master-data/rest/api/v1/mentor")
+                        .queryParam("directionId", directionId.toString())
+                        .build().toUri(),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<MentorDTO>>(){});
@@ -70,7 +142,7 @@ public class MasterDataClient {
         if (response.getStatusCode().equals(HttpStatus.OK)) {
             return response.getBody();
         }
-        return null;
+        return Collections.emptyList();
     }
 
     public StudentDTO getStudentById(UUID studentId) {
@@ -109,6 +181,6 @@ public class MasterDataClient {
         if (response.getStatusCode().equals(HttpStatus.OK)) {
             return response.getBody();
         }
-        return null;
+        return Collections.emptyList();
     }
 }

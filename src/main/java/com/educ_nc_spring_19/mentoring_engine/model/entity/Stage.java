@@ -24,6 +24,9 @@ public class Stage implements Auditable {
     private String name;
     private String description;
 
+    @Column(name = "stage_order", unique = true)
+    private Long order;
+
     @Column(columnDefinition = "timestamp with time zone")
     private OffsetDateTime deadline;
 
@@ -32,6 +35,8 @@ public class Stage implements Auditable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "stage", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "stage",
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Group> groups;
 }

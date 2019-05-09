@@ -1,12 +1,11 @@
 package com.educ_nc_spring_19.mentoring_engine.controller;
 
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.GroupDTO;
-import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
-import com.educ_nc_spring_19.mentoring_engine.client.MasterDataClient;
+import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
 import com.educ_nc_spring_19.mentoring_engine.mapper.GroupMapper;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
 import com.educ_nc_spring_19.mentoring_engine.service.GroupService;
-import com.educ_nc_spring_19.mentoring_engine.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -25,108 +24,158 @@ import java.util.*;
 @RestController
 @RequestMapping("/mentoring-engine/rest/api/v1/group")
 public class GroupController {
-    private final GroupService groupService;
     private final GroupMapper groupMapper;
-    private final UserService userService;
-    private final MasterDataClient masterDataClient;
+    private final GroupService groupService;
+    private final ObjectMapper objectMapper;
 
-    @GetMapping
-    public ResponseEntity<List<GroupDTO>> find(
-            @RequestParam(value = "id", required = false) List<UUID> ids) {
-
-        Set<Group> groupsToResponse = new HashSet<>();
-
-        if (CollectionUtils.isNotEmpty(ids)) {
-            groupsToResponse.addAll(groupService.findAllById(ids));
-        }
-        if (CollectionUtils.isEmpty(ids)) {
-            groupsToResponse.addAll(groupService.findAll());
+    @PatchMapping(path = "/add-student",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity addStudentId(@RequestBody StudentDTO studentDTO) {
+        if (studentDTO.getId() == null) {
+            log.log(Level.WARN, "addStudentId(): studentDTO.id is 'null'");
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(objectMapper.createObjectNode().put("message","body param 'id' is 'null'"));
         }
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(groupMapper.toGroupsDTO(new ArrayList<>(groupsToResponse)));
-    }
+        GroupDTO groupDTO;
+        try {
+            groupDTO = groupMapper.toGroupDTO(groupService.addStudentId(studentDTO.getId()));
+        } catch (IllegalArgumentException iAE) {
+            log.log(Level.WARN, iAE);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<GroupDTO> findById(@PathVariable(name = "id") UUID id) {
-        Optional<Group> group = groupService.findById(id);
-        return group.isPresent()
-                ? ResponseEntity.status(HttpStatus.OK).body(groupMapper.toGroupDTO(group.get()))
-                : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.status(HttpStatus.OK).body(groupDTO);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDTO> create(@RequestBody GroupDTO groupDTO) {
+    public ResponseEntity create(@RequestBody GroupDTO groupDTO) {
 
         String groupName = groupDTO.getName();
         if (StringUtils.isBlank(groupName)) {
-            log.log(Level.WARN, "groupDTO.name is empty");
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            log.log(Level.WARN, "create(): groupDTO.name is 'null'");
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(objectMapper.createObjectNode().put("message","body param 'name' is 'null'"));
         }
 
-        UUID currentUserId = userService.getCurrentUserId();
-        MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(currentUserId);
-        if (currentMentorDTO == null) {
-            log.log(Level.WARN, "Can't find Mentor by userId=" + currentUserId.toString());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        GroupDTO responseGroupDTO;
+        try {
+            responseGroupDTO = groupMapper.toGroupDTO(groupService.create(groupName));
+        } catch (IllegalArgumentException iAE) {
+            log.log(Level.WARN, iAE);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
         }
 
-        UUID mentorId = currentMentorDTO.getId();
-        if (groupService.findByMentorId(mentorId).isPresent()) {
-            log.log(Level.WARN, "Group with mentorId=" + mentorId + " is already exist");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        GroupDTO responseGroupDTO = groupMapper.toGroupDTO(groupService.create(groupName, mentorId));
-        log.log(Level.INFO, "New group created: " + responseGroupDTO.toString());
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(responseGroupDTO);
-    }
-
-    @PatchMapping(path = "/backup",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDTO> setBackup(@RequestBody GroupDTO groupDTO) {
-
-        UUID backupId = groupDTO.getBackupId();
-        if (backupId == null) {
-            log.log(Level.WARN, "groupDTO.backupId is empty");
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
-        }
-
-        UUID currentUserId = userService.getCurrentUserId();
-        MentorDTO currentMentorDTO = masterDataClient.getMentorByUserId(currentUserId);
-        if (currentMentorDTO == null) {
-            log.log(Level.WARN, "Can't find Mentor by userId=" + currentUserId.toString());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        UUID mentorId = currentMentorDTO.getId();
-        Optional<Group> group = groupService.findByMentorId(mentorId);
-
-        if (!group.isPresent()) {
-            log.log(Level.WARN, "Group for mentorId=" + mentorId.toString() + " doesn't exist");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        GroupDTO responseGroupDTO = groupMapper.toGroupDTO(groupService.setBackupId(group.get().getId(), backupId));
-        log.log(Level.INFO, "Set backupId=" + backupId.toString()
-                + " to group with id=" + group.get().getId().toString());
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(responseGroupDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseGroupDTO);
     }
 
     @DeleteMapping(path = "/{id}")
     public ResponseEntity deleteById(@PathVariable(name = "id") UUID id) {
         try {
-            groupService.delete(id);
+            groupService.deleteById(id);
         } catch (EmptyResultDataAccessException eRDAE) {
-            log.log(Level.WARN, eRDAE.getMessage());
+            log.log(Level.WARN, eRDAE);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
         }
-        log.log(Level.INFO, "group with id " + id.toString() + " deleted");
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity find(@RequestParam(value = "id", required = false) List<UUID> ids) {
+
+        if (CollectionUtils.isEmpty(ids)) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(groupMapper.toGroupsDTO(groupService.findAll()));
+        }
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(groupMapper.toGroupsDTO(groupService.findAllById(ids)));
+    }
+
+    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity findById(@PathVariable(name = "id") UUID id) {
+        Optional<Group> group = groupService.findById(id);
+        return group.isPresent()
+                ? ResponseEntity.status(HttpStatus.OK).body(groupMapper.toGroupDTO(group.get()))
+                : ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(objectMapper.createObjectNode().put("message", "Group(id=" + id + ") not found"));
+    }
+
+    @PatchMapping(path = "/remove-student",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity removeStudentId(@RequestBody StudentDTO studentDTO) {
+        if (studentDTO.getId() == null) {
+            log.log(Level.WARN, "removeStudentId(): studentDTO.id is 'null'");
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(objectMapper.createObjectNode().put("message","body param 'id' is 'null'"));
+        }
+
+        GroupDTO groupDTO;
+        try {
+            groupDTO = groupMapper.toGroupDTO(groupService.removeStudentId(studentDTO.getId()));
+        } catch (IllegalArgumentException iAE) {
+            log.log(Level.WARN, iAE);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(groupDTO);
+    }
+
+    @PatchMapping(path = "/backup",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity setBackup(@RequestBody GroupDTO groupDTO) {
+        if (groupDTO.getBackupId() == null) {
+            log.log(Level.WARN, "setBackup(): groupDTO.backupId is 'null'");
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(objectMapper.createObjectNode().put("message","body param 'backupId' is 'null'"));
+        }
+
+        GroupDTO responseGroupDTO;
+        try {
+            responseGroupDTO = groupMapper.toGroupDTO(groupService.setBackupId(groupDTO.getBackupId()));
+        } catch (IllegalArgumentException iAE) {
+            log.log(Level.WARN, iAE);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseGroupDTO);
+    }
+
+    @GetMapping(path = "/first-stage", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity setFirstMeetingStage() {
+        GroupDTO groupDTO;
+        try {
+            groupDTO = groupMapper.toGroupDTO(groupService.setFirstMeetingStage());
+        } catch (IllegalArgumentException iAE) {
+            log.log(Level.WARN, iAE);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
+        } catch (IllegalStateException iSE) {
+            log.log(Level.WARN, iSE);
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(iSE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(groupDTO);
     }
 }
