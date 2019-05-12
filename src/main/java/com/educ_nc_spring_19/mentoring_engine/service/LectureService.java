@@ -1,7 +1,9 @@
 package com.educ_nc_spring_19.mentoring_engine.service;
 
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.DayOfWeekTime;
+import com.educ_nc_spring_19.mentoring_engine.enums.StageType;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Lecture;
+import com.educ_nc_spring_19.mentoring_engine.model.entity.Stage;
 import com.educ_nc_spring_19.mentoring_engine.service.repo.LectureRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 @Service
 public class LectureService {
     private final LectureRepository lectureRepository;
+    private final StageService stageService;
 
     public Lecture addLectureDayTime(UUID lectureId, DayOfWeek day, OffsetTime time)
             throws IllegalArgumentException, NoSuchElementException {
@@ -131,6 +134,68 @@ public class LectureService {
                 log.log(Level.DEBUG, "Lecture(id=" + lecture.getId() + ") found by id"));
         return optionalLecture;
     }
+
+//    public Map<String, Object> getLectureDatesByDirection(UUID directionId)
+//            throws IllegalArgumentException, NoSuchElementException {
+//        if (directionId == null) {
+//            String errorMessage = "Provided directionId is null";
+//            log.log(Level.WARN, errorMessage);
+//            throw new IllegalArgumentException(errorMessage);
+//        }
+//
+//        Optional<Lecture> optionalLecture = lectureRepository.findByDirectionId(directionId);
+//        if (optionalLecture.isPresent()) {
+//            Lecture lecture = optionalLecture.get();
+//            Map<String, Object> resultMap = new HashMap<>();
+//
+//            OffsetDateTime firstLectureDate = lecture.getFirstLecture();
+//            if (firstLectureDate == null) {
+//                resultMap.put("firstLecture", null);
+//            } else {
+//                resultMap.put("firstLecture", firstLectureDate);
+//            }
+//
+//            Set<DayOfWeekTime> lectureDays = lecture.getLectureDays();
+//            if (CollectionUtils.isEmpty(lectureDays)) {
+//                resultMap.put("dates", null);
+//            } else {
+//                Optional<Stage> optionalStage = stageService.findByType(StageType.PROJECT_PROTECTION);
+//                if (optionalStage.isPresent()) {
+//                    OffsetDateTime projectDeadline = optionalStage.get().getDeadline();
+//                    if (projectDeadline == null) {
+//                        resultMap.put("dates", null);
+//                        log.log(Level.INFO, "Stage(type=" + StageType.PROJECT_PROTECTION.name()
+//                                + ") deadline is null. No lecture dates calculated");
+//                    } else {
+//                        Set<OffsetDateTime> lectureDates = new HashSet<>();
+//
+//                        // firstLectureDate - start
+//                        // projectDeadline - end
+//
+//                        // -------------------------------------
+//                        // TO DO calculations ?! (now - freezed)
+//                        // maybe we need lectures count field in Lecture for calculations, against stage deadline
+//                        // -------------------------------------
+//
+//                    }
+//
+//                } else {
+//                    resultMap.put("dates", null);
+//                    log.log(Level.INFO, "Stage(type=" + StageType.PROJECT_PROTECTION.name()
+//                            + ") doesn't exist. No lecture dates calculated");
+//                }
+//
+//
+//
+//            }
+//
+//            return resultMap;
+//        } else {
+//            String errorMessage = "Lecture for Direction(id=" + directionId + ") doesn't exist";
+//            log.log(Level.WARN, errorMessage);
+//            throw new NoSuchElementException(errorMessage);
+//        }
+//    }
 
     public Lecture save(Lecture lecture) {
         return lectureRepository.save(lecture);
