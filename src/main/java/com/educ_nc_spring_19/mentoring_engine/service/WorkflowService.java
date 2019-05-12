@@ -4,6 +4,7 @@ import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.DirectionDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
 import com.educ_nc_spring_19.mentoring_engine.client.MasterDataClient;
+import com.educ_nc_spring_19.mentoring_engine.enums.StageType;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Cauldron;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Pool;
@@ -109,10 +110,9 @@ public class WorkflowService {
         // end create pools
 
         // create groups
-        final long DISTRIBUTION_STAGE_ORDER = 1L;
-        Optional<Stage> stage = stageService.findByOrder(DISTRIBUTION_STAGE_ORDER);
+        Optional<Stage> stage = stageService.findByType(StageType.DISTRIBUTION);
         if (!stage.isPresent()) {
-            log.log(Level.WARN, "Stage(order=" + DISTRIBUTION_STAGE_ORDER + ") doesn't exist! No groups created.");
+            log.log(Level.WARN, "Stage(type=" + StageType.DISTRIBUTION.name() + ") doesn't exist! No groups created.");
             return result;
         }
 

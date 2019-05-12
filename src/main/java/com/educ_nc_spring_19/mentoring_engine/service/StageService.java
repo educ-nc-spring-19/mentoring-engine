@@ -1,5 +1,6 @@
 package com.educ_nc_spring_19.mentoring_engine.service;
 
+import com.educ_nc_spring_19.mentoring_engine.enums.StageType;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Stage;
 import com.educ_nc_spring_19.mentoring_engine.service.repo.StageRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class StageService {
         return stageRepository.findById(id);
     }
 
-    public Optional<Stage> findByOrder(Long order) {
-        return stageRepository.findByOrder(order);
+    public Optional<Stage> findByType(StageType type) {
+        return stageRepository.findByType(type);
     }
 }

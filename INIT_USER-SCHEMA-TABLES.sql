@@ -60,7 +60,7 @@ CREATE TABLE mentoring_engine.stage (
     id uuid PRIMARY KEY,
     name character varying(255) COLLATE pg_catalog."default",
     description character varying(255) COLLATE pg_catalog."default",
-    stage_order bigint UNIQUE,
+    stage_type character varying(255) COLLATE pg_catalog."default" UNIQUE NOT NULL,
     deadline timestamp with time zone,
     created_date timestamp with time zone,
     created_by_user_id uuid,
@@ -80,6 +80,7 @@ CREATE TABLE mentoring_engine.spr_group (
     mentor_id uuid,
     backup_id uuid,
     stage_id uuid NOT NULL,
+    first_meeting_date timestamp with time zone,
     created_date timestamp with time zone,
     created_by_user_id uuid,
     updated_date timestamp with time zone,
@@ -111,6 +112,23 @@ CREATE TABLE mentoring_engine.group_student (
 ALTER TABLE mentoring_engine.group_student OWNER to mentoring_engine;
 -- END CREATE TABLE mentoring_engine.group_student
 
+-- BEGIN CREATE TABLE mentoring_engine.group_meeting
+CREATE TABLE mentoring_engine.group_meeting (
+    group_id uuid NOT NULL,
+    day character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    day_time time with time zone NOT NULL,
+    CONSTRAINT group_meeting_group_id_day UNIQUE (group_id, day),
+    CONSTRAINT fk_group_id FOREIGN KEY (group_id)
+        REFERENCES mentoring_engine.spr_group (id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+) WITH (
+    OIDS = FALSE
+) TABLESPACE pg_default;
+
+ALTER TABLE mentoring_engine.group_meeting OWNER to mentoring_engine;
+-- END CREATE TABLE mentoring_engine.group_meeting
+
 -- BEGIN CREATE TABLE mentoring_engine.pool
 CREATE TABLE mentoring_engine.pool (
     id uuid PRIMARY KEY,
@@ -140,5 +158,38 @@ CREATE TABLE mentoring_engine.pool_student (
 
 ALTER TABLE mentoring_engine.pool_student OWNER to mentoring_engine;
 -- END CREATE TABLE mentoring_engine.pool_student
+
+-- BEGIN CREATE TABLE mentoring_engine.lecture
+CREATE TABLE mentoring_engine.lecture (
+    id uuid PRIMARY KEY,
+    direction_id uuid UNIQUE NOT NULL,
+    first_lecture timestamp with time zone,
+    created_date timestamp with time zone,
+    created_by_user_id uuid,
+    updated_date timestamp with time zone,
+    updated_by_user_id uuid
+) WITH (
+    OIDS = FALSE
+) TABLESPACE pg_default;
+
+ALTER TABLE mentoring_engine.lecture OWNER to mentoring_engine;
+-- END CREATE TABLE mentoring_engine.lecture
+
+-- BEGIN CREATE TABLE mentoring_engine.lecture_day
+CREATE TABLE mentoring_engine.lecture_day (
+    dir_lec_id uuid NOT NULL,
+    day character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    day_time time with time zone NOT NULL,
+    CONSTRAINT lecture_day_dir_lec_id_day UNIQUE (dir_lec_id, day),
+    CONSTRAINT fk_dir_lec_id FOREIGN KEY (dir_lec_id)
+        REFERENCES mentoring_engine.lecture (id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+) WITH (
+    OIDS = FALSE
+) TABLESPACE pg_default;
+
+ALTER TABLE mentoring_engine.lecture_day OWNER to mentoring_engine;
+-- END CREATE TABLE mentoring_engine.lecture_day
 
 -- END CREATE TABLES

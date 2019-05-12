@@ -5,7 +5,9 @@ import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
 import com.educ_nc_spring_19.mentoring_engine.mapper.GroupMapper;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
 import com.educ_nc_spring_19.mentoring_engine.service.GroupService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -17,6 +19,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Log4j2
@@ -160,7 +165,38 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.OK).body(responseGroupDTO);
     }
 
-    @GetMapping(path = "/first-stage", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(path = "/first-meeting-date",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity setFirstMeetingDate(@RequestBody ObjectNode body) {
+        GroupDTO groupDTO;
+        try {
+            if (!body.has("firstMeetingDate")) {
+                throw new IllegalArgumentException("Provided request body has no 'firstMeetingDate' field");
+            }
+
+            JsonNode firstMeetingDateField = body.get("firstMeetingDate");
+            if (firstMeetingDateField.isNull()) {
+                throw new IllegalArgumentException("Provided request body's 'firstMeetingDate' field is null");
+            }
+
+            OffsetDateTime firstMeetingDate = OffsetDateTime.parse(firstMeetingDateField.textValue(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            groupDTO = groupMapper.toGroupDTO(groupService.setFirstMeetingDate(firstMeetingDate));
+        } catch (DateTimeParseException | IllegalArgumentException e) {
+            log.log(Level.WARN, e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
+        } catch (IllegalStateException iSE) {
+            log.log(Level.WARN, iSE);
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(iSE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(groupDTO);
+    }
+
+    @GetMapping(path = "/first-meeting-stage", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setFirstMeetingStage() {
         GroupDTO groupDTO;
         try {
