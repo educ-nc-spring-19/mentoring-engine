@@ -5,10 +5,7 @@ import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
 import com.educ_nc_spring_19.mentoring_engine.client.MasterDataClient;
 import com.educ_nc_spring_19.mentoring_engine.enums.StageType;
-import com.educ_nc_spring_19.mentoring_engine.model.entity.Cauldron;
-import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
-import com.educ_nc_spring_19.mentoring_engine.model.entity.Pool;
-import com.educ_nc_spring_19.mentoring_engine.model.entity.Stage;
+import com.educ_nc_spring_19.mentoring_engine.model.entity.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -25,6 +22,7 @@ public class WorkflowService {
 
     private final CauldronService cauldronService;
     private final GroupService groupService;
+    private final LectureService lectureService;
     private final MasterDataClient masterDataClient;
     private final PoolService poolService;
     private final StageService stageService;
@@ -32,10 +30,11 @@ public class WorkflowService {
     public Map<String, List<?>> init() {
 
         // delete all data
+        lectureService.deleteAll();
         poolService.deleteAll();
         cauldronService.deleteAll();
         groupService.deleteAll();
-        log.log(Level.INFO, "All pools, cauldrons and groups were deleted");
+        log.log(Level.INFO, "All lectures, pools, cauldrons and groups were deleted");
 
         Map<String, List<?>> result = new HashMap<>();
 
@@ -87,7 +86,7 @@ public class WorkflowService {
         // end create cauldrons
 
         // create pools
-        List<Pool> pools = new LinkedList<>();
+        List<Pool> pools = new ArrayList<>();
         directionDTOS.forEach(directionDTO -> {
             Pool pool = new Pool();
             pool.setDirectionId(directionDTO.getId());
@@ -109,6 +108,19 @@ public class WorkflowService {
         result.put("pools", createdPools);
         // end create pools
 
+        // create lectures
+        List<Lecture> lectures = new ArrayList<>();
+        directionDTOS.forEach(directionDTO -> {
+            Lecture lecture = new Lecture();
+            lecture.setDirectionId(directionDTO.getId());
+            lectures.add(lecture);
+        });
+
+        List<Lecture> createdLectures = lectureService.saveAll(lectures);
+        log.log(Level.INFO, "Lectures created: " + createdLectures);
+        result.put("lectures", createdLectures);
+        // end create lectures
+
         // create groups
         Optional<Stage> stage = stageService.findByType(StageType.DISTRIBUTION);
         if (!stage.isPresent()) {
@@ -116,7 +128,7 @@ public class WorkflowService {
             return result;
         }
 
-        List<Group> groups = new LinkedList<>();
+        List<Group> groups = new ArrayList<>();
         mentorDTOS.forEach(mentorDTO -> {
             Group group = new Group();
             group.setName(mentorDTO.getAcronym() + "'s group");

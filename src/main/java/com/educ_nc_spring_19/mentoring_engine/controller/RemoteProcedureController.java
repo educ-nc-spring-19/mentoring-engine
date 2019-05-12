@@ -3,9 +3,11 @@ package com.educ_nc_spring_19.mentoring_engine.controller;
 import com.educ_nc_spring_19.mentoring_engine.enums.InviteState;
 import com.educ_nc_spring_19.mentoring_engine.mapper.CauldronMapper;
 import com.educ_nc_spring_19.mentoring_engine.mapper.GroupMapper;
+import com.educ_nc_spring_19.mentoring_engine.mapper.LectureMapper;
 import com.educ_nc_spring_19.mentoring_engine.mapper.PoolMapper;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Cauldron;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
+import com.educ_nc_spring_19.mentoring_engine.model.entity.Lecture;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Pool;
 import com.educ_nc_spring_19.mentoring_engine.service.InviteService;
 import com.educ_nc_spring_19.mentoring_engine.service.WorkflowService;
@@ -35,6 +37,7 @@ public class RemoteProcedureController {
 
     private final CauldronMapper cauldronMapper;
     private final GroupMapper groupMapper;
+    private final LectureMapper lectureMapper;
     private final ObjectMapper objectMapper;
     private final PoolMapper poolMapper;
 
@@ -128,6 +131,10 @@ public class RemoteProcedureController {
         // Unchecked casts, but we trust to map keys returned from WorkflowService
         if (CollectionUtils.isNotEmpty(resultOfInit.get("pools"))) {
             response.put("pools", poolMapper.toPoolsDTO((List<Pool>) resultOfInit.get("pools")));
+        }
+
+        if (CollectionUtils.isNotEmpty(resultOfInit.get("lectures"))) {
+            response.put("lectures", lectureMapper.toLecturesDTO((List<Lecture>) resultOfInit.get("lectures")));
         }
 
         if (CollectionUtils.isNotEmpty(resultOfInit.get("cauldrons"))) {
