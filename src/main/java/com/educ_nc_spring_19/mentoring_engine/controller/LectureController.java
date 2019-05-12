@@ -16,7 +16,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.DayOfWeek;
 import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -32,6 +34,90 @@ public class LectureController {
     private final LectureMapper lectureMapper;
     private final LectureService lectureService;
     private final ObjectMapper objectMapper;
+
+    @PostMapping(path = "/add-day",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity addLectureDayTime(@RequestBody ObjectNode body) {
+        LectureDTO lectureDTO;
+        try {
+            if (!body.has("id")) {
+                throw new IllegalArgumentException("Provided request body has no 'id' field");
+            } else if (!body.has("day")) {
+                throw new IllegalArgumentException("Provided request body has no 'day' field");
+            } else if (!body.has("time")) {
+                throw new IllegalArgumentException("Provided request body has no 'time' time");
+            }
+
+            JsonNode idField = body.get("id");
+            if (idField.isNull()) {
+                throw new IllegalArgumentException("Provided request body's 'id' field is null");
+            }
+
+            JsonNode dayField = body.get("day");
+            if (dayField.isNull()) {
+                throw new IllegalArgumentException("Provided request body's 'day' field is null");
+            }
+
+            JsonNode timeField = body.get("time");
+            if (timeField.isNull()) {
+                throw new IllegalArgumentException("Provided request body's 'time' field is null");
+            }
+
+            UUID id = UUID.fromString(idField.textValue());
+            DayOfWeek day = DayOfWeek.valueOf(dayField.textValue());
+            OffsetTime time = OffsetTime.parse(timeField.textValue(), DateTimeFormatter.ISO_OFFSET_TIME);
+
+            lectureDTO = lectureMapper.toLectureDTO(lectureService.addLectureDayTime(id, day, time));
+
+        } catch (DateTimeParseException | IllegalArgumentException e) {
+            log.log(Level.WARN, e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(lectureDTO);
+    }
+
+    @PatchMapping(path = "/delete-day",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity deleteLectureDay(@RequestBody ObjectNode body) {
+        LectureDTO lectureDTO;
+        try {
+            if (!body.has("id")) {
+                throw new IllegalArgumentException("Provided request body has no 'id' field");
+            } else if (!body.has("day")) {
+                throw new IllegalArgumentException("Provided request body has no 'day' field");
+            }
+
+            JsonNode idField = body.get("id");
+            if (idField.isNull()) {
+                throw new IllegalArgumentException("Provided request body's 'id' field is null");
+            }
+
+            JsonNode dayField = body.get("day");
+            if (dayField.isNull()) {
+                throw new IllegalArgumentException("Provided request body's 'day' field is null");
+            }
+
+            UUID id = UUID.fromString(idField.textValue());
+            DayOfWeek day = DayOfWeek.valueOf(dayField.textValue());
+
+            lectureDTO = lectureMapper.toLectureDTO(lectureService.deleteLectureDay(id, day));
+
+        } catch (IllegalArgumentException iAE) {
+            log.log(Level.WARN, iAE);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(lectureDTO);
+    }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity find(@RequestParam(value = "id", required = false) List<UUID> ids) {
