@@ -21,10 +21,7 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -120,17 +117,27 @@ public class LectureController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity find(@RequestParam(value = "id", required = false) List<UUID> ids) {
-
-        if (CollectionUtils.isEmpty(ids)) {
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(lectureMapper.toLecturesDTO(lectureService.findAll()));
-        } else if (ids.size() == 1) {
-            return findById(ids.get(0));
+    public ResponseEntity find(@RequestParam(value = "id", required = false) List<UUID> ids,
+                               @RequestParam(value = "directionId", required = false) UUID directionId) {
+        Set<Lecture> lectures = new HashSet<>();
+        if (CollectionUtils.isNotEmpty(ids)) {
+            lectures.addAll(lectureService.findAllById(ids));
+        }
+        if (directionId != null) {
+            lectureService.findByDirectionId(directionId).ifPresent(lectures::add);
+        }
+        if (CollectionUtils.isEmpty(ids) && directionId == null) {
+            lectures.addAll(lectureService.findAll());
         }
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(lectureMapper.toLecturesDTO(lectureService.findAllById(ids)));
+        // returning response
+        if (lectures.size() == 1) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(lectureMapper.toLectureDTO(new ArrayList<>(lectures).get(0)));
+        } else {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(lectureMapper.toLecturesDTO(new ArrayList<>(lectures)));
+        }
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -118,6 +118,13 @@ public class LectureService {
         return lectures;
     }
 
+    public Optional<Lecture> findByDirectionId(UUID directionId) {
+        Optional<Lecture> optionalLecture = lectureRepository.findByDirectionId(directionId);
+        optionalLecture.ifPresent(lecture ->
+                log.log(Level.DEBUG, "Lecture(id=" + lecture.getId() + ") found by Direction(id=" + directionId + ")"));
+        return optionalLecture;
+    }
+
     public Optional<Lecture> findById(UUID id) {
         Optional<Lecture> optionalLecture = lectureRepository.findById(id);
         optionalLecture.ifPresent(lecture ->
