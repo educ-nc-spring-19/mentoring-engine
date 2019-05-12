@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -83,18 +84,26 @@ public class MasterDataClient {
     }
 
     public DirectionDTO getDirectionById(UUID directionId) {
-        ResponseEntity<DirectionDTO> response = restTemplate.getForEntity(
-                UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
-                        .path("/master-data/rest/api/v1/direction/{id}")
-                        .buildAndExpand(directionId.toString()).toUri(),
-                DirectionDTO.class
-        );
-
-        if (response.getStatusCode().equals(HttpStatus.OK)) {
-            return response.getBody();
+        if (directionId == null) {
+            log.log(Level.WARN, "directionId is null");
+            return null;
         }
-        log.log(Level.WARN, "directionId: \'" + directionId.toString()
-                + "\', statusCode: \'" + response.getStatusCode().toString() + "\'");
+        try {
+            ResponseEntity<DirectionDTO> response = restTemplate.getForEntity(
+                    UriComponentsBuilder.newInstance().scheme("http").host(MASTER_DATA_URL).port(MASTER_DATA_PORT)
+                            .path("/master-data/rest/api/v1/direction/{id}")
+                            .buildAndExpand(directionId.toString()).toUri(),
+                    DirectionDTO.class
+            );
+            log.log(Level.INFO, "directionId: \'" + directionId
+                    + "\', statusCode: \'" + response.getStatusCode().toString() + "\'");
+            if (response.getStatusCode().equals(HttpStatus.OK)) {
+                return response.getBody();
+            }
+        } catch (RestClientException rCE) {
+            log.log(Level.WARN, rCE);
+            return null;
+        }
         return null;
     }
 

@@ -102,6 +102,8 @@ public class GroupController {
         if (CollectionUtils.isEmpty(ids)) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(groupMapper.toGroupsDTO(groupService.findAll()));
+        } else if (ids.size() == 1) {
+            return findById(ids.get(0));
         }
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -110,9 +112,9 @@ public class GroupController {
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity findById(@PathVariable(name = "id") UUID id) {
-        Optional<Group> group = groupService.findById(id);
-        return group.isPresent()
-                ? ResponseEntity.status(HttpStatus.OK).body(groupMapper.toGroupDTO(group.get()))
+        Optional<Group> optionalGroup = groupService.findById(id);
+        return optionalGroup.isPresent()
+                ? ResponseEntity.status(HttpStatus.OK).body(groupMapper.toGroupDTO(optionalGroup.get()))
                 : ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(objectMapper.createObjectNode().put("message", "Group(id=" + id + ") not found"));
     }
