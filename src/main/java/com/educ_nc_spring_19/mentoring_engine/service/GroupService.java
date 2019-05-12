@@ -1,5 +1,6 @@
 package com.educ_nc_spring_19.mentoring_engine.service;
 
+import com.educ_nc_spring_19.educ_nc_spring_19_common.common.DayOfWeekTime;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.StudentStatusBind;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
@@ -18,7 +19,9 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.logging.log4j.Level;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,6 +36,44 @@ public class GroupService {
     private final PoolService poolService;
     private final StageService stageService;
     private final UserService userService;
+
+    public Group addMeetingDayTime(DayOfWeek day, OffsetTime time)
+            throws IllegalArgumentException, NoSuchElementException {
+        if (day == null) {
+            String errorMessage = "Provided day is null";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        } else if (time == null) {
+            String errorMessage = "Provided time is null";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        // get current mentor
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
+        // find Group for current mentor
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
+        if (optionalGroup.isPresent()) {
+            Group group = optionalGroup.get();
+
+            Set<DayOfWeekTime> meetings = group.getMeetings();
+            if (meetings.stream().map(DayOfWeekTime::getDay).anyMatch(day::equals)) {
+                String errorMessage = "Provided day '" + day.name()
+                        + "' is currently in Group(id" + group.getId() + ")'s meetings";
+                log.log(Level.WARN, errorMessage);
+                throw new IllegalArgumentException(errorMessage);
+            }
+
+            meetings.add(new DayOfWeekTime(day, time));
+            // saving updated lecture
+            group = groupRepository.save(group);
+            log.log(Level.INFO, "DayOfWeekTime(day=" + day.name()
+                    + ", time=" + time + ") added to Group(id=" + group.getId() + ")");
+            return group;
+        } else {
+            throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
+        }
+    }
 
     public Group addStudentId(UUID studentId) throws IllegalArgumentException, NoSuchElementException {
         // get current mentor
@@ -150,6 +191,39 @@ public class GroupService {
 
         groupRepository.delete(group);
         log.log(Level.INFO, "Group(id=" + id + ") deleted");
+    }
+
+    public Group deleteMeetingDay(DayOfWeek day) throws IllegalArgumentException, NoSuchElementException {
+        if (day == null) {
+            String errorMessage = "Provided day is null";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        // get current mentor
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
+        // find Group for current mentor
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
+        if (optionalGroup.isPresent()) {
+            Group group = optionalGroup.get();
+            Set<DayOfWeekTime> meetings = group.getMeetings();
+            if (CollectionUtils.isEmpty(meetings) ||  meetings.stream().map(DayOfWeekTime::getDay).noneMatch(day::equals)) {
+                String errorMessage = "Provided day '" + day.name()
+                        + "' is absent in Group(id=" + group.getId() + ")'s meetings";
+                log.log(Level.WARN, errorMessage);
+                throw new IllegalArgumentException(errorMessage);
+            }
+
+            meetings.removeIf(meeting -> meeting.getDay().equals(day));
+
+            // saving updated lecture
+            group = groupRepository.save(group);
+            log.log(Level.INFO, "DayOfWeek(day=" + day.name()
+                    + ") removed from Group(id=" + group.getId() + ")");
+            return group;
+        } else {
+            throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
+        }
     }
 
     public List<Group> findAll() {

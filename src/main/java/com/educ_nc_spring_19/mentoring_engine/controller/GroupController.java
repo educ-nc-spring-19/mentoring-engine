@@ -19,7 +19,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.DayOfWeek;
 import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -32,6 +34,44 @@ public class GroupController {
     private final GroupMapper groupMapper;
     private final GroupService groupService;
     private final ObjectMapper objectMapper;
+
+    @PostMapping(path = "/add-day",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity addMeetingDayTime(@RequestBody ObjectNode body) {
+        GroupDTO groupDTO;
+        try {
+            if (!body.has("day")) {
+                throw new IllegalArgumentException("Provided request body has no 'day' field");
+            } else if (!body.has("time")) {
+                throw new IllegalArgumentException("Provided request body has no 'time' time");
+            }
+
+            JsonNode dayField = body.get("day");
+            if (dayField.isNull()) {
+                throw new IllegalArgumentException("Provided request body's 'day' field is null");
+            }
+
+            JsonNode timeField = body.get("time");
+            if (timeField.isNull()) {
+                throw new IllegalArgumentException("Provided request body's 'time' field is null");
+            }
+
+            DayOfWeek day = DayOfWeek.valueOf(dayField.textValue());
+            OffsetTime time = OffsetTime.parse(timeField.textValue(), DateTimeFormatter.ISO_OFFSET_TIME);
+
+            groupDTO = groupMapper.toGroupDTO(groupService.addMeetingDayTime(day, time));
+
+        } catch (DateTimeParseException | IllegalArgumentException e) {
+            log.log(Level.WARN, e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(groupDTO);
+    }
 
     @PatchMapping(path = "/add-student",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -94,6 +134,36 @@ public class GroupController {
         }
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PatchMapping(path = "/delete-day",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity deleteMeetingDay(@RequestBody ObjectNode body) {
+        GroupDTO groupDTO;
+        try {
+            if (!body.has("day")) {
+                throw new IllegalArgumentException("Provided request body has no 'day' field");
+            }
+
+            JsonNode dayField = body.get("day");
+            if (dayField.isNull()) {
+                throw new IllegalArgumentException("Provided request body's 'day' field is null");
+            }
+
+            DayOfWeek day = DayOfWeek.valueOf(dayField.textValue());
+
+            groupDTO = groupMapper.toGroupDTO(groupService.deleteMeetingDay(day));
+
+        } catch (IllegalArgumentException iAE) {
+            log.log(Level.WARN, iAE);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iAE);
+        } catch (NoSuchElementException nSEE) {
+            log.log(Level.WARN, nSEE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(nSEE);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(groupDTO);
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
