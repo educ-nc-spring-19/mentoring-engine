@@ -104,6 +104,8 @@ public class InviteService {
                             + URLEncoder.encode(encryptedRejectMessage, "UTF-8"))
             );
 
+            mailingServiceClient.sendInviteEmail(studentId, group.getMentorId(), group.getBackupId(), group.getFirstMeetingDate(), inviteLinkPair);
+
             if (!student.getStatus().equals(StudentStatus.INVITED)) {
                 log.log(Level.INFO, "Set Student(id=" + studentId + ") status to '" + StudentStatus.INVITED + "'");
                 student.setStatus(StudentStatus.INVITED);
@@ -165,7 +167,7 @@ public class InviteService {
             throw new IllegalArgumentException(errorMessage);
         }
 
-        List<StudentStatusBind> students = group.getStudents();
+        Set<StudentStatusBind> students = group.getStudents();
         if (CollectionUtils.isEmpty(students)) {
             String errorMessage = "Group(id=" + group.getId() + ") students is empty";
             log.log(Level.WARN, errorMessage);
@@ -195,7 +197,7 @@ public class InviteService {
 
                     studentIdLinks.put(studentId, inviteLinkPair);
 
-                    mailingServiceClient.sendInviteEmail(studentId, group.getMentorId(), group.getBackupId(), inviteLinkPair);
+                    mailingServiceClient.sendInviteEmail(studentId, group.getMentorId(), group.getBackupId(), group.getFirstMeetingDate(), inviteLinkPair);
 
                     log.log(Level.INFO, "Create links for Student(id=" + studentId + ")");
 
@@ -258,7 +260,7 @@ public class InviteService {
             Optional<Group> optionalGroup = groupService.findById(groupId);
             if (optionalGroup.isPresent()) {
                 Group group = optionalGroup.get();
-                List<StudentStatusBind> students = group.getStudents();
+                Set<StudentStatusBind> students = group.getStudents();
                 if (CollectionUtils.isEmpty(students)) {
                     String errorMessage = "Group(id=" + groupId + ") students is empty";
                     log.log(Level.WARN, errorMessage);

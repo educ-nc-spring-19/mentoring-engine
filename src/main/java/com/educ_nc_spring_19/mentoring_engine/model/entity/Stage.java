@@ -3,6 +3,7 @@ package com.educ_nc_spring_19.mentoring_engine.model.entity;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Audit;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Auditable;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.listener.AuditListener;
+import com.educ_nc_spring_19.mentoring_engine.enums.StageType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -24,8 +25,9 @@ public class Stage implements Auditable {
     private String name;
     private String description;
 
-    @Column(name = "stage_order", unique = true)
-    private Long order;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "stage_type", unique = true, nullable = false)
+    private StageType type;
 
     @Column(columnDefinition = "timestamp with time zone")
     private OffsetDateTime deadline;

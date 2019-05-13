@@ -1,5 +1,6 @@
 package com.educ_nc_spring_19.mentoring_engine.service.scheduled;
 
+import com.educ_nc_spring_19.mentoring_engine.enums.StageType;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Group;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Stage;
 import com.educ_nc_spring_19.mentoring_engine.service.GroupService;
@@ -12,6 +13,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Level;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -27,12 +30,12 @@ public class FirstMeetingAutoScheduler {
     private final StageService stageService;
 
     @Scheduled(cron = "0 0/5 * 1/1 * ?")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setFirstMeetingStageAndSendInvites() {
         log.log(Level.INFO, "Start of setFirstMeetingStageAndSendInvites() method");
-        final Long FIRST_MEETING_STAGE_ORDER = 1L;
-        Optional<Stage> optionalStage = stageService.findByOrder(FIRST_MEETING_STAGE_ORDER);
+        Optional<Stage> optionalStage = stageService.findByType(StageType.FIRST_MEETING);
         if (!optionalStage.isPresent()) {
-            log.log(Level.WARN, "Can't find Stage(order=" + FIRST_MEETING_STAGE_ORDER
+            log.log(Level.WARN, "Can't find Stage(type=" + StageType.FIRST_MEETING.name()
                     + "). setFirstMeetingStageAndSendInvites() method stopped");
             return;
         }

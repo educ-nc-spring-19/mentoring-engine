@@ -1,10 +1,12 @@
 package com.educ_nc_spring_19.mentoring_engine.service;
 
+import com.educ_nc_spring_19.educ_nc_spring_19_common.common.DayOfWeekTime;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.StudentStatusBind;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.MentorDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.dto.StudentDTO;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.enums.StudentStatus;
 import com.educ_nc_spring_19.mentoring_engine.client.MasterDataClient;
+import com.educ_nc_spring_19.mentoring_engine.enums.StageType;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Cauldron;
 import com.educ_nc_spring_19.mentoring_engine.model.entity.Pool;
 import com.educ_nc_spring_19.mentoring_engine.service.repo.GroupRepository;
@@ -17,6 +19,9 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.logging.log4j.Level;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,8 +37,43 @@ public class GroupService {
     private final StageService stageService;
     private final UserService userService;
 
-    private static final Long DISTRIBUTION_STAGE_ORDER = 1L;
-    private static final Long FIRST_MEETING_STAGE_ORDER = 2L;
+    public Group addMeetingDayTime(DayOfWeek day, OffsetTime time)
+            throws IllegalArgumentException, NoSuchElementException {
+        if (day == null) {
+            String errorMessage = "Provided day is null";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        } else if (time == null) {
+            String errorMessage = "Provided time is null";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        // get current mentor
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
+        // find Group for current mentor
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
+        if (optionalGroup.isPresent()) {
+            Group group = optionalGroup.get();
+
+            Set<DayOfWeekTime> meetings = group.getMeetings();
+            if (meetings.stream().map(DayOfWeekTime::getDay).anyMatch(day::equals)) {
+                String errorMessage = "Provided day '" + day.name()
+                        + "' is currently in Group(id" + group.getId() + ")'s meetings";
+                log.log(Level.WARN, errorMessage);
+                throw new IllegalArgumentException(errorMessage);
+            }
+
+            meetings.add(new DayOfWeekTime(day, time));
+            // saving updated lecture
+            group = groupRepository.save(group);
+            log.log(Level.INFO, "DayOfWeekTime(day=" + day.name()
+                    + ", time=" + time + ") added to Group(id=" + group.getId() + ")");
+            return group;
+        } else {
+            throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
+        }
+    }
 
     public Group addStudentId(UUID studentId) throws IllegalArgumentException, NoSuchElementException {
         // get current mentor
@@ -102,13 +142,13 @@ public class GroupService {
         group.setName(name);
         group.setMentorId(mentorId);
 
-        Optional<Stage> stage = stageService.findByOrder(DISTRIBUTION_STAGE_ORDER);
+        Optional<Stage> stage = stageService.findByType(StageType.DISTRIBUTION);
         if (stage.isPresent()) {
             group.setStage(stage.get());
             group.setStageId(stage.get().getId());
         } else {
-            throw new IllegalArgumentException("Can't create new group cause illegal value in 'DISTRIBUTION_STAGE_ORDER': '"
-                    + DISTRIBUTION_STAGE_ORDER.toString() + "'");
+            throw new IllegalArgumentException("Can't create new group in cause of absent Stage(type="
+                    + StageType.DISTRIBUTION.name() + ")");
         }
 
         group = groupRepository.save(group);
@@ -151,6 +191,39 @@ public class GroupService {
 
         groupRepository.delete(group);
         log.log(Level.INFO, "Group(id=" + id + ") deleted");
+    }
+
+    public Group deleteMeetingDay(DayOfWeek day) throws IllegalArgumentException, NoSuchElementException {
+        if (day == null) {
+            String errorMessage = "Provided day is null";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        // get current mentor
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
+        // find Group for current mentor
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
+        if (optionalGroup.isPresent()) {
+            Group group = optionalGroup.get();
+            Set<DayOfWeekTime> meetings = group.getMeetings();
+            if (CollectionUtils.isEmpty(meetings) ||  meetings.stream().map(DayOfWeekTime::getDay).noneMatch(day::equals)) {
+                String errorMessage = "Provided day '" + day.name()
+                        + "' is absent in Group(id=" + group.getId() + ")'s meetings";
+                log.log(Level.WARN, errorMessage);
+                throw new IllegalArgumentException(errorMessage);
+            }
+
+            meetings.removeIf(meeting -> meeting.getDay().equals(day));
+
+            // saving updated lecture
+            group = groupRepository.save(group);
+            log.log(Level.INFO, "DayOfWeek(day=" + day.name()
+                    + ") removed from Group(id=" + group.getId() + ")");
+            return group;
+        } else {
+            throw new NoSuchElementException("Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist");
+        }
     }
 
     public List<Group> findAll() {
@@ -219,7 +292,7 @@ public class GroupService {
         if (optionalGroup.isPresent()) {
             Group group = optionalGroup.get();
 
-            List<StudentStatusBind> studentStatusBinds = group.getStudents();
+            Set<StudentStatusBind> studentStatusBinds = group.getStudents();
             if (CollectionUtils.isEmpty(studentStatusBinds)
                     || studentStatusBinds.stream().map(StudentStatusBind::getId)
                     .noneMatch(id -> id.equals(studentId))) {
@@ -292,6 +365,83 @@ public class GroupService {
         }
     }
 
+    public Group setFirstMeetingDate(OffsetDateTime date)
+            throws IllegalArgumentException, IllegalStateException, NoSuchElementException {
+        if (date == null) {
+            String errorMessage = "Provided date is null";
+            log.log(Level.WARN, errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        // get current mentor
+        MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
+        // find Group for current mentor
+        Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
+        if (optionalGroup.isPresent()) {
+            Group group = optionalGroup.get();
+            Stage groupStage = group.getStage();
+
+            // Setting of first meeting date is possible only for Stage types DISTRIBUTION and FIRST_MEETING
+            if (groupStage.getType().equals(StageType.PROJECT_WORKS)
+                    || groupStage.getType().equals(StageType.PROJECT_PROTECTION)) {
+                String errorMessage = "Group(id=" + group.getId()
+                        + ") has an illegal Stage(type=" + groupStage.getType().name()
+                        + "). Setting of group first meeting date aborted";
+                log.log(Level.WARN, errorMessage);
+                throw new IllegalStateException(errorMessage);
+            }
+
+            Stage firstMeetingStage;
+            if (!groupStage.getType().equals(StageType.FIRST_MEETING)) {
+                Optional<Stage> optionalFirstMeetingStage = stageService.findByType(StageType.FIRST_MEETING);
+                if (!optionalFirstMeetingStage.isPresent()) {
+                    throw new IllegalArgumentException("Can't find Stage(type=" + StageType.DISTRIBUTION.name() + ")");
+                }
+                firstMeetingStage = optionalFirstMeetingStage.get();
+                log.log(Level.INFO, "Group(id=" + group.getId() + ") has Stage(type=" + groupStage.getType().name()
+                        + "). Set firstMeetingStage variable to Stage(type=" + firstMeetingStage.getType().name()
+                        + ") found from database");
+            } else {
+                firstMeetingStage = groupStage;
+                log.log(Level.INFO, "Group(id=" + group.getId() + ") has Stage(type=" + groupStage.getType().name()
+                        + "). Set firstMeetingStage variable to Stage(type=" + firstMeetingStage.getType().name()
+                        + ") from groupStage variable");
+            }
+
+            OffsetDateTime firstMeetingStageDeadline = firstMeetingStage.getDeadline();
+            // Maybe throwing the exception in this case is rude, but who knows...
+            if (firstMeetingStageDeadline == null) {
+                String errorMessage = "Stage(id=" + firstMeetingStage.getId()
+                        + ", type=" + firstMeetingStage.getType().name()
+                        + ")'s deadline is null. Setting of first meeting date for Group(id=" +
+                        group.getId() + ") aborted";
+                log.log(Level.WARN, errorMessage);
+                throw new NoSuchElementException(errorMessage);
+            }
+
+            if (date.isBefore(firstMeetingStageDeadline) && date.isAfter(OffsetDateTime.now())) {
+                // set group's first meeting date, if it before First Meeting Stage deadline and after current date-time
+                group.setFirstMeetingDate(date);
+                // saving updated group
+                group = groupRepository.save(group);
+
+                log.log(Level.INFO, "Group(id=" + group.getId() + ")'s first meeting date set to '"
+                        + group.getFirstMeetingDate() + "'");
+                return group;
+            } else {
+                String errorMessage = "Provided date '" + date + "' is later than Stage(type="
+                        + firstMeetingStage.getType().name() + ") deadline '" + firstMeetingStageDeadline
+                        + "' or earlier than current date-time";
+                log.log(Level.WARN, errorMessage);
+                throw new IllegalArgumentException(errorMessage);
+            }
+        } else {
+            String errorMessage = "Group for Mentor(id=" + currentMentorDTO.getId() + ") doesn't exist";
+            log.log(Level.WARN, errorMessage);
+            throw new NoSuchElementException(errorMessage);
+        }
+    }
+
     public Group setFirstMeetingStage() throws IllegalArgumentException, IllegalStateException, NoSuchElementException {
         // get current mentor
         MentorDTO currentMentorDTO = this.getCurrentMentorDTO();
@@ -299,15 +449,15 @@ public class GroupService {
         Optional<Group> optionalGroup = groupRepository.findByMentorId(currentMentorDTO.getId());
         if (optionalGroup.isPresent()) {
             Group group = optionalGroup.get();
-            if (!DISTRIBUTION_STAGE_ORDER.equals(group.getStage().getOrder())) {
-                throw new IllegalStateException("Group(id=" + group.getId() + ") has an illegal Stage(order="
-                        + group.getStage().getOrder() + "). Required Stage(order=" + DISTRIBUTION_STAGE_ORDER + ")");
+            if (!(StageType.DISTRIBUTION).equals(group.getStage().getType())) {
+                throw new IllegalStateException("Group(id=" + group.getId() + ") has an illegal Stage(type="
+                        + group.getStage().getType().name()
+                        + "). Required Stage(type=" + StageType.DISTRIBUTION.name() + ")");
             }
 
-//            Optional<Stage> optionalStage = stageService.findById(FIRST_MEETING_STAGE_ID);
-            Optional<Stage> optionalStage = stageService.findByOrder(FIRST_MEETING_STAGE_ORDER);
+            Optional<Stage> optionalStage = stageService.findByType(StageType.FIRST_MEETING);
             if (!optionalStage.isPresent()) {
-                throw new IllegalArgumentException("Can't find Stage(order=" + FIRST_MEETING_STAGE_ORDER + ")");
+                throw new IllegalArgumentException("Can't find Stage(type=" + StageType.FIRST_MEETING.name() + ")");
             }
 
             // setting stage
@@ -325,9 +475,9 @@ public class GroupService {
 
     public List<Group> setFirstMeetingStageBulk() throws IllegalArgumentException {
 
-        Optional<Stage> optionalDistributionStage = stageService.findByOrder(DISTRIBUTION_STAGE_ORDER);
+        Optional<Stage> optionalDistributionStage = stageService.findByType(StageType.DISTRIBUTION);
         if (!optionalDistributionStage.isPresent()) {
-            throw new IllegalArgumentException("Can't find Stage(order=" + DISTRIBUTION_STAGE_ORDER + ")");
+            throw new IllegalArgumentException("Can't find Stage(type=" + StageType.DISTRIBUTION.name() + ")");
         }
 
         List<Group> groups = IterableUtils.toList(groupRepository.findAllByStageId(optionalDistributionStage.get().getId()));
@@ -336,9 +486,9 @@ public class GroupService {
             return Collections.emptyList();
         }
 
-        Optional<Stage> optionalStage = stageService.findByOrder(FIRST_MEETING_STAGE_ORDER);
+        Optional<Stage> optionalStage = stageService.findByType(StageType.FIRST_MEETING);
         if (!optionalStage.isPresent()) {
-            throw new IllegalArgumentException("Can't find Stage(order=" + FIRST_MEETING_STAGE_ORDER + ")");
+            throw new IllegalArgumentException("Can't find Stage(type=" + StageType.FIRST_MEETING.name() + ")");
         }
 
         // setting stage to groups

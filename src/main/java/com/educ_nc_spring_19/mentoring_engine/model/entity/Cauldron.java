@@ -3,7 +3,6 @@ package com.educ_nc_spring_19.mentoring_engine.model.entity;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Audit;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.Auditable;
 import com.educ_nc_spring_19.educ_nc_spring_19_common.common.listener.AuditListener;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

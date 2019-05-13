@@ -29,6 +29,8 @@ public class PoolController {
         if (CollectionUtils.isEmpty(ids)) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(poolMapper.toPoolsDTO(poolService.findAll()));
+        } else if (ids.size() == 1) {
+            return findById(ids.get(0));
         }
 
         return ResponseEntity.status(HttpStatus.OK)

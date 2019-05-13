@@ -4,6 +4,7 @@ import com.educ_nc_spring_19.mentoring_engine.util.InviteLinkPair;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Level;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
@@ -16,13 +17,15 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Log4j2
 @Component
 public class MailingServiceClient {
-    private final String MAILING_SERVICE_URL = "127.0.0.1";
-    private final String MAILING_SERVICE_PORT ="55060";
+    private final static String ADDRESS = "г. Санкт-Петербург, пр. Кронверкский, д. 49";
+    private final static String MAILING_SERVICE_URL = "127.0.0.1";
+    private final static String MAILING_SERVICE_PORT ="55060";
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
 
@@ -31,7 +34,12 @@ public class MailingServiceClient {
         this.objectMapper = objectMapper;
     }
 
-    private ObjectNode createInviteEmailJSON(UUID studentId, UUID mentorId, UUID backupId, InviteLinkPair linkPair) {
+    private ObjectNode createInviteEmailJSON(UUID studentId,
+                                             UUID mentorId,
+                                             UUID backupId,
+                                             String address,
+                                             OffsetDateTime firstMeetingDate,
+                                             InviteLinkPair linkPair) {
 
         ObjectNode inviteEmailBody = objectMapper.createObjectNode();
         inviteEmailBody.put("receiver_id", studentId.toString());
@@ -45,6 +53,13 @@ public class MailingServiceClient {
         }
         if (backupId != null) {
             argsNode.put("Backup name", backupId.toString());
+        }
+        if (StringUtils.isNotBlank(address)) {
+            argsNode.put("Address", address);
+        }
+        if (firstMeetingDate != null) {
+            argsNode.put("Date", firstMeetingDate.toString());
+            argsNode.put("Time", firstMeetingDate.toString());
         }
         if (linkPair.getAcceptLink() != null) {
             argsNode.put("Accept link", linkPair.getAcceptLink().toString());
@@ -60,8 +75,8 @@ public class MailingServiceClient {
         return inviteEmailBody;
     }
 
-    public void sendInviteEmail(UUID studentId, UUID mentorId, UUID backupId, InviteLinkPair linkPair) {
-        ObjectNode request = createInviteEmailJSON(studentId, mentorId, backupId, linkPair);
+    public void sendInviteEmail(UUID studentId, UUID mentorId, UUID backupId, OffsetDateTime firstMeetingDate, InviteLinkPair linkPair) {
+        ObjectNode request = createInviteEmailJSON(studentId, mentorId, backupId, ADDRESS, firstMeetingDate, linkPair);
 
         try {
             ResponseEntity<ObjectNode> response = restTemplate.exchange(
