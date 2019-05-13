@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 @Log4j2
 @Component
 public class MasterDataClient {
-    private final String MASTER_DATA_URL = "127.0.0.1";
-    private final String MASTER_DATA_PORT ="55000";
+    private final static String MASTER_DATA_URL = "127.0.0.1";
+    private final static String MASTER_DATA_PORT ="55000";
     private final RestTemplate restTemplate;
 
     public MasterDataClient(RestTemplateBuilder restTemplateBuilder) {

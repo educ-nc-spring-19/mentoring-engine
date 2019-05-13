@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.educ_nc_spring_19</groupId>
     <artifactId>mentoring_engine</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
     <name>mentoring_engine</name>
     <description>Implementation of Mentoring Engine microservice</description>
 

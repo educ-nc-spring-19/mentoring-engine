@@ -104,7 +104,7 @@ public class InviteService {
                             + URLEncoder.encode(encryptedRejectMessage, "UTF-8"))
             );
 
-            mailingServiceClient.sendInviteEmail(studentId, group.getMentorId(), group.getBackupId(), inviteLinkPair);
+            mailingServiceClient.sendInviteEmail(studentId, group.getMentorId(), group.getBackupId(), group.getFirstMeetingDate(), inviteLinkPair);
 
             if (!student.getStatus().equals(StudentStatus.INVITED)) {
                 log.log(Level.INFO, "Set Student(id=" + studentId + ") status to '" + StudentStatus.INVITED + "'");
@@ -197,7 +197,7 @@ public class InviteService {
 
                     studentIdLinks.put(studentId, inviteLinkPair);
 
-                    mailingServiceClient.sendInviteEmail(studentId, group.getMentorId(), group.getBackupId(), inviteLinkPair);
+                    mailingServiceClient.sendInviteEmail(studentId, group.getMentorId(), group.getBackupId(), group.getFirstMeetingDate(), inviteLinkPair);
 
                     log.log(Level.INFO, "Create links for Student(id=" + studentId + ")");
 
